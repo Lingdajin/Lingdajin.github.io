@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>2024年寒假一起练报告 | Ling_da_jin的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://lingdajin.github.io/favicon.ico?v=1708260533500">
+<link rel="stylesheet" href="https://lingdajin.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="项目需求
+
+通过小脚丫FPGA核心板上的2个数码管和轻触按键制作一个秒表，通过按键来控制秒表的功能，并在数码管上显示数值。
+使用七段显示器作为输出设备，在小脚丫FPGA核心板上创建一个2位数秒表。 秒表应从 0.0 秒计数到 9.9秒，然后..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://lingdajin.github.io">
+        <img src="https://lingdajin.github.io/images/avatar.png?v=1708260533500" class="site-logo">
+        <h1 class="site-title">Ling_da_jin的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Lingdajin" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://lingdajin.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">2024年寒假一起练报告</h2>
+            <div class="post-date">2024-02-17</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="项目需求">项目需求</h1>
+<ul>
+<li>通过小脚丫FPGA核心板上的2个数码管和轻触按键制作一个秒表，通过按键来控制秒表的功能，并在数码管上显示数值。</li>
+<li>使用七段显示器作为输出设备，在小脚丫FPGA核心板上创建一个2位数秒表。 秒表应从 0.0 秒计数到 9.9秒，然后翻转，计数值每0.1秒精确更新一次。</li>
+<li>秒表使用四个按钮输入：开始、停止、增量和清除（重置）。 开始输入使秒表开始以10Hz时钟速率递增（即每0.1秒计数一次）； 停止输入使计数器停止递增，但使数码管显示当前计数器值； 每次按下按钮时，增量输入都会导致显示值增加一次，无论按住增量按钮多长时间； 复位/清除输入强制计数器值为零。</li>
+</ul>
+<h1 id="需求分析">需求分析</h1>
+<ul>
+<li>需要用到小脚丫的两个数码管及按键，实现秒表功能。</li>
+<li>由于有计时功能，需要用到小脚丫的12M晶振作为时钟源，要求0.1s准确更新一次，即10Hz更新一次，理论实现方式为在12MHz的每个时钟上升沿计数一次，计到12*10^5后更新一次即为10Hz更新。</li>
+<li>用到四个按钮输入，由于秒表的高精度性，需要对按键进行消抖。</li>
+<li>计划利用三段式状态机进行编写</li>
+</ul>
+<h1 id="实现方式">实现方式</h1>
+<ul>
+<li>使用三段式状态机编写主模块，子模块分为seg数码管模块、debounce消抖模块（也使用了三段式状态机）、color_breath彩虹呼吸灯模块。<br>
+*给出三段式状态机基本写法：</li>
+</ul>
+<pre><code>always @(posedge clk or negedge rst) begin
+    if(!rst) begin  //异步复位
+        STATE_C &lt;= IDLE; 
+    end
+    else begin
+        STATE_C &lt;= STATE_N; //每个时钟上升沿到来时更新状态
+    end
+end
+
+always @(*) begin
+	case(STATE_C)
+		STATE_1: begin
+		…
+		end
+		STATE_2: begin
+		…
+		end
+		…
+		…
+		…
+	endcase
+end
+
+always @(posedge clk or negedge rst) begin
+	if(!rst) begin
+	…
+	end
+	else if(STATE_C == STATE_1) begin
+	…
+	end
+	else if(…) begin
+	…
+	end
+end
+</code></pre>
+<ul>
+<li>此程序可分为6个状态，STOP暂停状态、STOP_PRESS按下暂停键后一直不放手的状态，COUNT计数状态、COUNT_PRESS按下开始键后一直不放手状态、INCRE增一键、S0按下增一键后不放手状态，将程序分好状态后续的实现方式可以很简单。</li>
+<li>seg数码管模块直接定义每个数字对应的的数值，直接赋值即可。</li>
+<li>color_breath彩虹呼吸灯模块，首先定义pwm发生器模块，再动态调整pwm的占空比，使其由低到高再由高到低循环，RGB端口调用pwm模块实现彩虹呼吸灯。</li>
+<li>彩虹呼吸灯为原创功能，其具体功能为，增加了三种模式，普通模式为0.1s更新，模式2为0.01s更新一次，模式3为1s更新一次，不同的模式闪烁不同的呼吸灯。</li>
+<li>原创增加了红色LED灯来扩展显示的秒数，以普通模式为例，显示时间从0<sub>9.9s后会亮起一个LED灯，同时再次从0</sub>9.9s循环，之后再次亮起一个LED灯，在8个LED灯亮满后且再次达到9.9s才算一次完整循环，即由基本要求的9.9s计时扩展到了89.9s计时，且保证精度不变。</li>
+<li>使用拨码开关控制模式的切换，且只有在STOP状态下可以进行模式切换，注意！switch为4’b0000时为普通模式，4’b0001时为高精度模式，精确到0.01s，4’b0011时为高范围模式，精确到1s，拨码为该三种情况外的其他情况时均为普通模式。</li>
+</ul>
+<h1 id="功能框图">功能框图</h1>
+<p>状态转移关系如下图：<br>
+<img src="https://lingdajin.github.io/post-images/1708260343986.PNG" alt="" loading="lazy"></p>
+<h1 id="代码及说明">代码及说明</h1>
+<p>1.1顶层模块参数定义</p>
+<pre><code>//参数、状态定义
+parameter STATE_WID = 6;    //状态位宽
+parameter STOP = 6'b000_001; //松开后暂停状态（独热码）
+parameter COUNT = 6'b000_010;    //松开后计数状态
+parameter INCRE = 6'b000_100;    //增一状态
+parameter S0 = 6'b001_000;   //增一后一直按住的状态（不计数）
+parameter COUNT_PRESS = 6'b010_000;    //开始计数后一直按住的状态
+parameter STOP_PRESS = 6'b100_000;   //暂停后一直按住的状态
+
+parameter COUNT_CLK_1 = 1199999;  //计数1200000次，即0.1s
+parameter COUNT_CLK_2 = 119999; //计数120000次，即0.01s
+parameter COUNT_CLK_3 = 11999999;  //计数12000000次，即1s
+
+parameter PRESS = 1'b1; //按钮按下
+parameter UP = 1'b0;    //按钮抬起
+</code></pre>
+<p>1.2状态转换</p>
+<pre><code>always @(*) begin
+    case(STATE_C)
+        STOP: begin
+            if(btn_de == PRESS) begin   //按下按键，状态转换
+                STATE_N = COUNT_PRESS;
+            end
+            else if(increase_de == PRESS) begin //按下加一键，状态转换
+                STATE_N = INCRE;
+            end
+            else begin  //保持状态
+                STATE_N = STOP;
+            end
+        end
+        COUNT_PRESS: begin
+            if(btn_de == PRESS) begin
+                STATE_N = COUNT_PRESS;  //一直按住就不会变动，也为计数状态
+            end
+            else if(btn_de == UP) begin
+                STATE_N = COUNT;    //松开后进入计数状态
+            end
+            else begin
+                STATE_N = COUNT_PRESS;
+            end
+        end
+        COUNT: begin
+            if(btn_de == PRESS) begin
+                STATE_N = STOP_PRESS;
+            end
+            else begin
+                STATE_N = COUNT;
+            end
+        end
+        STOP_PRESS: begin
+            if(btn_de == PRESS) begin
+                STATE_N = STOP_PRESS;
+            end
+            else if(btn_de == UP) begin
+                STATE_N = STOP; //松开后进入暂停状态
+            end
+            else begin
+                STATE_N = STOP_PRESS;
+            end
+        end
+        INCRE: begin
+            if(increase_de == PRESS) begin
+                STATE_N = S0;
+            end
+            else if(increase_de == UP) begin
+                STATE_N  = STOP;
+            end
+            else begin
+                STATE_N = INCRE;
+            end
+        end
+        S0: begin
+            if(increase_de == PRESS) begin
+                STATE_N = S0;
+            end
+            else if(increase_de == UP) begin
+                STATE_N = STOP;
+            end
+            else begin
+                STATE_N = S0;
+            end
+        end
+        default : begin //状态要完善
+            STATE_N = STATE_C;
+        end
+    endcase
+end
+</code></pre>
+<p>1.3定义计时器，定义每个状态下应当做些什么</p>
+<pre><code>always @(posedge clk or negedge rst) begin
+    if(!rst) begin  //复位
+        count &lt;= 0;
+        y1 &lt;= 0;
+        y0 &lt;= 0;
+        led_reg &lt;= 0;
+    end
+    else if(STATE_C == COUNT || STATE_C == COUNT_PRESS) begin   //在COUNT、COUNT_PRESS启动计时
+        if(count == count_choose) begin
+            count &lt;= 0; //计时器清零
+            if(y0 == 9) begin
+                y0 &lt;= 0; //数字指示器个位清零
+                if(y1 == 9) begin
+                    y1 &lt;= 0;    //计满，数字指示器十位清零
+                    if(led_reg == 255) begin
+                        led_reg &lt;= 0;   //进位计满，进位指示器清零
+                    end
+                    else begin
+                        led_reg &lt;= (led_reg &lt;&lt; 1) + 1; //进位，左移一位并加一
+                    end
+                end
+                else begin
+                    y1 &lt;= y1 + 1;   //数字指示器十位进一
+                end
+            end
+            else begin
+                y0 &lt;= y0 + 1; //每0.1s数字指示器个位加一
+            end
+        end
+        else begin
+            count &lt;= count + 1; //在计时状态启动计时器
+        end
+    end
+    else if(STATE_C == INCRE) begin //在INCRE状态数字指示器加一
+        count &lt;= 0; //计时器清零
+        if(y0 == 9) begin
+            y0 &lt;= 0; //数字指示器个位清零
+            if(y1 == 9) begin
+                y1 &lt;= 0;    //数字指示器十位清零
+                if(led_reg == 255) begin
+                    led_reg &lt;= 0;   //进位计满，进位指示器清零
+                end
+                else begin
+                    led_reg &lt;= (led_reg &lt;&lt; 1) + 1; //进位，左移一位并加一
+                end
+            end
+            else begin
+                y1 &lt;= y1 + 1;   //数字指示器十位进一
+            end
+        end
+        else begin
+            y0 &lt;= y0 + 1; //数字指示器个位加一
+        end
+    end
+    else begin
+        count &lt;= 0; //在STOP、STOP_PRESS和S0状态计时器清零
+        y1 &lt;= y1;
+        y0 &lt;= y0;  //在STOP、STOP_PRESS和S0状态数字指示器不变
+        led_reg &lt;= led_reg;
+        case(switch)    //仅可在STOP、STOP_PRESS和S0状态下改变模式
+            4'b0000: begin
+                count_choose &lt;= COUNT_CLK_1; //普通秒表模式，精确到0.1s
+                mod_reg &lt;= 0;
+            end
+            4'b0001: begin
+                count_choose &lt;= COUNT_CLK_2; //模式2，精确到0.01s
+                mod_reg &lt;= 1;
+            end
+            4'b0011: begin
+                count_choose &lt;= COUNT_CLK_3; //模式3，精确到1s
+                mod_reg &lt;= 2;
+            end
+            default: begin
+                count_choose &lt;= COUNT_CLK_1;
+                mod_reg &lt;= 0;
+            end
+        endcase
+    end
+end
+</code></pre>
+<p>2.数码管控制</p>
+<pre><code>module seg(y1,y0,seg0,seg1);
+input [3:0]y1;
+input [3:0]y0;
+output [8:0]seg1;
+output [8:0]seg0;
+reg [8:0]seg_reg [9:0];
+
+initial begin
+    seg_reg[0] = 9'h3f;
+    seg_reg[1] = 9'h06;
+    seg_reg[2] = 9'h5b;
+	seg_reg[3] = 9'h4f;
+	seg_reg[4] = 9'h66;
+	seg_reg[5] = 9'h6d;
+	seg_reg[6] = 9'h7d;
+	seg_reg[7] = 9'h07;
+	seg_reg[8] = 9'h7f;
+    seg_reg[9] = 9'h6f;
+end
+
+assign seg1 = seg_reg[y1];
+assign seg0 = seg_reg[y0];
+
+
+endmodule
+</code></pre>
+<p>3.1PWM发生器</p>
+<pre><code>module pwm(out,duty,clk);
+	input [7:0] duty;   // 输入，表示占空比，范围从0到255
+	input clk;         // 输入，时钟信号用于同步
+	output reg out;     // 输出信号，表示PWM波形
+	reg [7:0] buffer;      // 8位寄存器，用于存储当前计数值
+ 
+always @ (posedge clk)  begin 
+	buffer &lt;= buffer + 1;// 在每个时钟上升沿递增缓冲区值
+	if (buffer &lt; duty)// 将缓冲区值与占空比进行比较:如果缓冲区小于占空比，则将输出设置为0；否则，设置为1。
+		begin
+			out &lt;= 0;
+		end
+		else begin
+			out &lt;= 1;
+		end
+	end
+endmodule
+</code></pre>
+<p>3.2通过不断改变占空比实现呼吸效果</p>
+<pre><code>always @(posedge divide_clk) begin  //使RGB_buffer在0~255递增再从255~0递减
+    if(wheel_position &lt; 510 )   wheel_position &lt;= wheel_position + 1;
+    else wheel_position &lt;= 0;
+    if(wheel_position &lt; 255) begin
+        RGB_buffer &lt;= wheel_position;
+    end
+    else begin
+        RGB_buffer &lt;= 510 - wheel_position;
+    end
+end
+</code></pre>
+<p>4.1消抖模块状态转换关系</p>
+<pre><code>//参数定义
+localparam KEY_W = 1;
+localparam TIME_20MS = 24_0000;
+
+localparam IDLE  = 4'b0001;//初始状态 
+localparam DOWN  = 4'b0010;//按键按下抖动
+localparam HOLD  = 4'b0100;//按键按下后稳定
+localparam UP    = 4'b1000;//按键上升抖动
+//状态转移条件定义
+wire idle2down; //初始转移到按下抖动
+wire down2idle; //按下抖动转移到初始
+wire down2hold; //按下抖动转移到按下稳定
+wire hold2up  ; //按下稳定转移到上升抖动
+wire up2idle  ; //上升抖动转移到初始
+
+always@(*)begin
+    case(state_c)
+        IDLE:begin
+            if(idle2down)begin
+                state_n = DOWN;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        DOWN:begin
+            if(down2idle)begin
+                state_n = IDLE;
+            end
+            else if(down2hold)begin
+                state_n = HOLD;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        HOLD:begin
+            if(hold2up)begin
+                state_n = UP;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        UP:begin
+            if(up2idle)begin
+                state_n = IDLE;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        default:state_n = state_c;
+    endcase
+end
+</code></pre>
+<p>4.2检测按键抖动来定义状态转换</p>
+<pre><code>assign idle2down = (state_c == IDLE) &amp;&amp; nedge;//检测到下降沿
+assign down2idle = (state_c == DOWN) &amp;&amp; (pedge&amp;&amp; end_cnt_20ms);//计时未到20ms时且出现上升沿表示按键意外抖动，回到初始态
+assign down2hold = (state_c == DOWN) &amp;&amp; (~pedge &amp;&amp; end_cnt_20ms);//计时到20ms时没有出现上升沿标志按键按下后保持稳定
+assign hold2up   = (state_c == HOLD) &amp;&amp; (pedge);//检测到上升沿跳转到上升态
+assign up2idle   = (state_c == UP)   &amp;&amp; end_cnt_20ms;//计数器计数到20ms跳转到初始态
+</code></pre>
+<p>4.3按键赋值</p>
+<pre><code>//按键赋值
+always@(posedge clk or negedge rst_n)begin
+    if(!rst_n)begin
+        key_out_r &lt;= {KEY_W{1'b0}};
+    end
+    else if(state_c == HOLD)begin
+        key_out_r &lt;= {KEY_W{1'b1}};
+    end
+    else begin
+        key_out_r &lt;= {KEY_W{1'b0}};
+    end
+end
+assign key_out = key_out_r;
+</code></pre>
+<h1 id="仿真波形图">仿真波形图</h1>
+<p>1.编写总体测试文件</p>
+<pre><code>`timescale 1ns/1ns
+module counter_tb();
+reg clk;
+reg btn;
+reg increase;
+reg rst;
+wire [8:0]seg1;
+wire [8:0]seg0;
+
+counter uut(
+    .clk(clk),
+    .btn(btn),
+    .rst(rst),
+    .increase(increase),
+    .seg0(seg0),
+    .seg1(seg1)
+    );
+
+always #(125/3) clk = ~clk;
+// always #5 clk = ~clk;
+
+initial begin
+    rst = 1;
+    btn = 1;
+    increase = 1;
+    clk = 1;
+    
+    rst = 0;
+    #5
+    rst = 1;    //初始复位
+    #9000000
+
+    //==============按下按钮开始计时=============
+    #100
+    btn = 0;
+    #100
+    btn = 1;
+    // #900000000
+    #9000000
+
+    //==============按下按钮暂停====================
+    btn = 0;
+    #100
+    btn = 1;
+    #9000000
+
+    //=================测试加一键========================
+    increase = 0;
+    #1000
+    increase = 1;
+    #9000000
+
+    //====================测试复位键==================
+    rst = 0;
+    #100
+    rst = 1;
+    #4000000
+    $stop;
+    
+end
+
+endmodule
+</code></pre>
+<p>输出波形<br>
+<img src="https://lingdajin.github.io/post-images/1708260436459.png" alt="" loading="lazy"><br>
+2.测试消抖</p>
+<pre><code>`timescale 1ns/1ns
+module debounce_tb();
+reg clk;
+reg rst;
+reg key_in;
+wire key_out;
+
+debounce uut(
+    .clk(clk),
+    .rst_n(rst),
+    .key_in(key_in),
+    .key_out(key_out)
+    );
+always #(125/3) clk = ~clk;
+
+initial begin
+    rst = 1;
+    key_in = 1;
+    clk = 1;
+
+    rst = 0;
+    #5
+    rst = 1;    //初始复位
+    #1000000
+
+    key_in = 0;
+    #200000
+    key_in = 1; //按下按键抖动
+    #200000
+    key_in = 0;
+    #25000000
+
+    key_in = 1;
+    #200000
+    key_in = 0; //抬起按键抖动
+    #200000
+    key_in = 1;
+    #30000000
+    $stop;
+end
+
+endmodule
+</code></pre>
+<p>输出波形:<br>
+<img src="https://lingdajin.github.io/post-images/1708260460988.png" alt="" loading="lazy"><br>
+可见，在输入模拟按下抖动信号大约20ms后才会输出消抖后信号，表明进入了稳定按下的状态，在输入模拟抬起抖动信号时，在上升沿出现一瞬间就输出了消抖后信号，表明已经不在按下状态。且由于小脚丫特性，输入信号中高电平代表未按下，低电平代表按下，而输出信号经过修正，高电平代表按下，低电平代表未按下。</p>
+<h1 id="fpga资源利用说明">FPGA资源利用说明</h1>
+<p>Design Summary<br>
+Number of registers:    241 out of  4635 (5%)<br>
+PFU registers:          241 out of  4320 (6%)<br>
+PIO registers:            0 out of   315 (0%)<br>
+Number of SLICEs:       212 out of  2160 (10%)<br>
+SLICEs as Logic/ROM:    212 out of  2160 (10%)<br>
+SLICEs as RAM:            0 out of  1620 (0%)<br>
+SLICEs as Carry:        116 out of  2160 (5%)<br>
+Number of LUT4s:        421 out of  4320 (10%)<br>
+Number used as logic LUTs:        189<br>
+Number used as distributed RAM:     0<br>
+Number used as ripple logic:      232<br>
+Number used as shift registers:     0<br>
+Number of PIO sites used: 40 + 4(JTAG) out of 105 (42%)<br>
+Number of block RAMs:  0 out of 10 (0%)<br>
+Number of GSRs:        1 out of 1 (100%)</p>
+<p>Diamond MAP分析界面截图:<br>
+<img src="https://lingdajin.github.io/post-images/1708260487745.png" alt="" loading="lazy"></p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://lingdajin.github.io/post/verilog-miao-biao-ji-shi-qi/">
+                  <h3 class="post-title">
+                    Verilog秒表计时器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '1f879b763da8aed37515',
+        clientSecret: '6c14b72825c03cb80fe1bb6490df46c82f21edc2',
+        repo: 'blog_reply',
+        owner: 'lingdajin',
+        admin: ['lingdajin'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>

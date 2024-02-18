@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>Verilog秒表计时器 | Ling_da_jin的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://lingdajin.github.io/favicon.ico?v=1708260533500">
+<link rel="stylesheet" href="https://lingdajin.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="使用Verilog实现秒表计时器功能。
+要求：
+
+数码管从0-20s计时，20s时自动归零
+动态驱动数码管
+有暂停按钮和归零按钮
+有按键消抖
+编写仿真文件，得到仿真波形图
+
+原理：
+
+要实现计时功能，需要用到时钟信号，在时钟信号上升时计数器..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://lingdajin.github.io">
+        <img src="https://lingdajin.github.io/images/avatar.png?v=1708260533500" class="site-logo">
+        <h1 class="site-title">Ling_da_jin的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Lingdajin" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://lingdajin.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">Verilog秒表计时器</h2>
+            <div class="post-date">2023-11-17</div>
+            
+            <div class="post-content" v-pre>
+              <p>使用<strong>Verilog</strong>实现秒表计时器功能。</p>
+<h1 id="要求">要求：</h1>
+<ul>
+<li>数码管从0-20s计时，20s时自动归零</li>
+<li>动态驱动数码管</li>
+<li>有暂停按钮和归零按钮</li>
+<li>有按键消抖</li>
+<li>编写仿真文件，得到仿真波形图</li>
+</ul>
+<h1 id="原理">原理：</h1>
+<ul>
+<li>要实现计时功能，需要用到时钟信号，在时钟信号上升时计数器加一</li>
+<li>动态驱动数码管是指开发板上的数码管为共阴极，一次只可使一个数码管导通，但通过时钟信号可以让不同数码管不停切换显示，只要其切换频率大于人眼可见频率，即可视为多个数码管同时显示不同数字。</li>
+<li>使用100Hz频率时钟，若要使计时器每1s加一，需要对时钟信号分频，将100Hz信号分为1Hz信号。</li>
+</ul>
+<h1 id="code">CODE</h1>
+<p>采用多模块设计</p>
+<ul>
+<li><strong>count.v</strong>(顶层文件)</li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:count.v
+*/
+module count(CLK,RST,btn,seg,cat);
+   input CLK,RST,btn;
+   wire [4:0] Q;	//计数器
+   wire [3:0] Q0;	//计数器个位
+   wire [3:0] Q1;	//计数器十位
+   output [6:0] seg;	//数码管
+   output [7:0]cat;	//数码管编号
+   reg [4:0] Q_TMP = 0;	//计数器前置
+   reg pulse = 0;	//暂停信号
+   wire btn_debounce;	//消抖后信号
+   reg clk_out = 0;	//1HZ分频时钟
+   reg [5:0] counter = 0; // 定义时钟计数器，用于计数时钟周期
+
+   assign Q = Q_TMP;	//Q始终等于Q_TMP
+   
+   always @(posedge CLK) begin
+   	counter &lt;= counter + 1; // 时钟计数器加1
+   	if (counter == 49) begin // 当时钟计数器达到49时，输出一个时钟周期
+       clk_out &lt;= ~clk_out; // 取反输出时钟信号
+       counter &lt;= 0; // 时钟计数器清零
+   	end
+   end
+   
+   always @(posedge clk_out or posedge RST) begin	//计数器控制
+   	if (RST)	Q_TMP = 0;
+   	else if (Q_TMP==19) 	Q_TMP = 0;
+   	else if(pulse)	Q_TMP &lt;= Q_TMP;	//pulse为1时暂停
+   	else Q_TMP &lt;= Q_TMP + 1;	//pulse为0时不暂停
+   end
+
+   always @(posedge btn_debounce) begin	//暂停控制
+   	pulse &lt;= ~pulse;	//按下按钮将使暂停控制器翻转；
+   end
+
+   switch v2(	//拆分器，将两位数Q拆分为个位Q0和十位Q1
+   .Q(Q),
+   .OQ0(Q0),
+   .OQ1(Q1)
+   );
+
+   seg7 v1(	//动态驱动数码管
+   .A0(Q0),
+   .A1(Q1),
+   .Y(seg),
+   .clk(CLK),
+   .cat(cat)
+   );
+
+   key_debounce v3(	//按键消抖
+   .clk(CLK),
+   .i_key(btn),
+   .o_key(btn_debounce)
+   );
+endmodule
+</code></pre>
+<ul>
+<li><strong>switch.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:switch.v
+ */
+module switch(Q,OQ0,OQ1);	//拆分模块
+	input [3:0]Q;	//输入两位数
+	output reg[3:0]OQ0;	//个位数字
+	output reg[3:0]OQ1;	//十位数字
+	
+	always@(*) begin
+		if(Q&lt;=9) begin
+			OQ0 = Q;
+			OQ1 = 0;
+		end
+		else begin
+			OQ0 = Q - 10;
+			OQ1 = 1;
+		end
+	end
+endmodule
+</code></pre>
+<ul>
+<li><strong>seg7.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:seg7.v
+ */
+module seg7(A0,A1,Y,clk,cat);	//动态驱动数码管（当前驱动两位）
+	input[3:0] A0;	//个位
+	input [3:0]A1;	//十位
+	output reg[7:0] cat;	//数码管使能端（置0启动）
+	input clk;	//时钟信号
+	output[6:0] Y;	//单个数码管信号
+	reg [6:0] Y;
+	always@(*)begin	//由于只用驱动两位，故只需使用时钟信号的上升沿和下降沿即可实现动态驱动（驱动三位及以上需增加中介reg变量）
+		if(clk) begin
+		case(A0)
+		4'b0000 : Y=7'b1111110;//0
+		4'b0001 : Y=7'b0110000;//1
+		4'b0010 : Y=7'b1101101;//2
+		4'b0011 : Y=7'b1111001;//3
+		4'b0100 : Y=7'b0110011;//4
+		4'b0101 : Y=7'b1011011;//5
+		4'b0110 : Y=7'b1011111;//6
+		4'b0111 : Y=7'b1110000;//7
+		4'b1000 : Y=7'b1111111;//8
+		4'b1001 : Y=7'b1111011;//9
+		default : Y=7'b0000000;
+		endcase
+		cat = 8'b11111110;	//数码管0使能（个位）
+		end
+		else if(~clk) begin
+			case(A1)
+		4'b0000 : Y=7'b1111110;//0
+		4'b0001 : Y=7'b0110000;//1
+		4'b0010 : Y=7'b1101101;//2
+		4'b0011 : Y=7'b1111001;//3
+		4'b0100 : Y=7'b0110011;//4
+		4'b0101 : Y=7'b1011011;//5
+		4'b0110 : Y=7'b1011111;//6
+		4'b0111 : Y=7'b1110000;//7
+		4'b1000 : Y=7'b1111111;//8
+		4'b1001 : Y=7'b1111011;//9
+		default : Y=7'b0000000;
+		endcase
+		cat = 8'b11111101;	//数码管1使能（十位）
+		end
+	end
+endmodule
+</code></pre>
+<ul>
+<li><strong>key_debounce.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:key_debounce.v
+ */
+module key_debounce(input clk,  i_key,output  o_key );	//按键消抖
+	reg r_key_buf1, r_key_buf2;
+	
+	always@(negedge clk)begin
+		r_key_buf2 &lt;= r_key_buf1;
+		r_key_buf1 &lt;= i_key;
+	end
+	
+	assign o_key = clk &amp; r_key_buf1 &amp; (~r_key_buf2);
+endmodule
+</code></pre>
+<h1 id="仿真">仿真</h1>
+<ul>
+<li>仿真文件</li>
+</ul>
+<pre><code>`timescale 1ms / 1ms
+
+module count_tb;
+
+reg clk;
+reg btn0;
+reg reset;
+wire [6:0] seg;
+wire [7:0] cat;
+
+// 实例化被测试模块
+count uut (
+	 .CLK(clk),
+	 .RST(reset),
+	 .btn(btn0),
+	 .seg(seg),
+	 .cat(cat)
+);
+
+	always#5 clk = ~clk;  // 100Hz时钟
+
+// 初始化和模拟输入
+initial begin
+    // 初始化
+	 clk = 0;
+    btn0 = 0;
+	 reset = 0;
+	 #3000;
+    reset = 1;
+	 #20
+    reset = 0;
+	 #4000
+	 
+    // 模拟按钮按下
+    #10;
+    btn0 = 1;
+    #20;
+    btn0 = 0;//pulse
+
+    #3000;
+	 
+	 #10 btn0 = 1;
+	 #20 btn0 = 0;//continue
+
+	 #3000;
+	 
+	 #10 btn0 = 1;
+	 #40 btn0 = 0;//pulse
+	 #3000;
+    $stop;
+end
+endmodule
+</code></pre>
+<ul>
+<li>仿真波形<br>
+<img src="https://lingdajin.github.io/post-images/1700232903647.png" alt="" loading="lazy"><br>
+可以看出，已完美实现计时器功能，拥有暂停、归零功能，按钮已进行消抖。</li>
+</ul>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://lingdajin.github.io/post/markdown/">
+                  <h3 class="post-title">
+                    阳康宝典-基于微信小程序的论坛
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '1f879b763da8aed37515',
+        clientSecret: '6c14b72825c03cb80fe1bb6490df46c82f21edc2',
+        repo: 'blog_reply',
+        owner: 'lingdajin',
+        admin: ['lingdajin'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>

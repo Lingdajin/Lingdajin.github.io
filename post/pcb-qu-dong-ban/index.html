@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>PCB驱动板 | Ling_da_jin的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://lingdajin.github.io/favicon.ico?v=1708260533500">
+<link rel="stylesheet" href="https://lingdajin.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="最近加入了智能车社团，学习了PCB打板，准备参加智能车竞赛，这是大作业驱动板的展示文章。
+介绍
+
+本次设计的驱动电路分为5个模块，驱动模块，降压模块，隔离模块，逻辑门模块，电源及开关模块。
+
+驱动电路原理主要为H桥电路，使用控制芯片控制H桥..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://lingdajin.github.io">
+        <img src="https://lingdajin.github.io/images/avatar.png?v=1708260533500" class="site-logo">
+        <h1 class="site-title">Ling_da_jin的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Lingdajin" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://lingdajin.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">PCB驱动板</h2>
+            <div class="post-date">2023-11-12</div>
+            
+            <div class="post-content" v-pre>
+              <p>最近加入了智能车社团，学习了PCB打板，准备参加智能车竞赛，这是大作业驱动板的展示文章。</p>
+<h2 id="介绍">介绍</h2>
+<ul>
+<li>本次设计的驱动电路分为5个模块，驱动模块，降压模块，隔离模块，逻辑门模块，电源及开关模块。</li>
+</ul>
+<p>驱动电路原理主要为H桥电路，使用控制芯片控制H桥达到驱动电机目的。</p>
+<ul>
+<li>使用<strong>HIP4082</strong>全桥电路</li>
+<li>使用<strong>TPS5430</strong>降压芯片</li>
+<li>使用光耦芯片进行信号隔离</li>
+<li>逻辑门电路实现单路<strong>PWM</strong>控制速度，单路DIR信号控制正反转</li>
+<li>大电流已铺铜</li>
+</ul>
+<p>实际上电测试，使用<strong>ESP8266</strong>输出<strong>PWM</strong>波（使用任何可以输出<strong>PWM</strong>波芯片的单片机都可以）占空比从10%-90%变化，使用12V电源供电，电机端可以正常输出电压，接入电机后可以正常驱动，正反转功能正常。</p>
+<h2 id="原理图">原理图</h2>
+<figure data-type="image" tabindex="1"><img src="https://lingdajin.github.io/post-images/1699799108352.png" alt="" loading="lazy"></figure>
+<h2 id="layout">LAYOUT</h2>
+<p><img src="https://lingdajin.github.io/post-images/1699799157260.png" alt="" loading="lazy"><br>
+<img src="https://lingdajin.github.io/post-images/1699799173459.png" alt="" loading="lazy"></p>
+<h2 id="3d预览图">3D预览图</h2>
+<figure data-type="image" tabindex="2"><img src="https://lingdajin.github.io/post-images/1699799251102.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://lingdajin.github.io/post/web/">
+                  <h3 class="post-title">
+                    web
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '1f879b763da8aed37515',
+        clientSecret: '6c14b72825c03cb80fe1bb6490df46c82f21edc2',
+        repo: 'blog_reply',
+        owner: 'lingdajin',
+        admin: ['lingdajin'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>

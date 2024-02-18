@@ -1,0 +1,3065 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://lingdajin.github.io</id>
+    <title>Ling_da_jin的博客</title>
+    <updated>2024-02-18T12:48:56.015Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://lingdajin.github.io"/>
+    <link rel="self" href="https://lingdajin.github.io/atom.xml"/>
+    <subtitle>温故而知新</subtitle>
+    <logo>https://lingdajin.github.io/images/avatar.png</logo>
+    <icon>https://lingdajin.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2024, Ling_da_jin的博客</rights>
+    <entry>
+        <title type="html"><![CDATA[2024年寒假一起练报告]]></title>
+        <id>https://lingdajin.github.io/post/2024-nian-han-jia-yi-qi-lian-bao-gao/</id>
+        <link href="https://lingdajin.github.io/post/2024-nian-han-jia-yi-qi-lian-bao-gao/">
+        </link>
+        <updated>2024-02-17T12:56:31.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="项目需求">项目需求</h1>
+<ul>
+<li>通过小脚丫FPGA核心板上的2个数码管和轻触按键制作一个秒表，通过按键来控制秒表的功能，并在数码管上显示数值。</li>
+<li>使用七段显示器作为输出设备，在小脚丫FPGA核心板上创建一个2位数秒表。 秒表应从 0.0 秒计数到 9.9秒，然后翻转，计数值每0.1秒精确更新一次。</li>
+<li>秒表使用四个按钮输入：开始、停止、增量和清除（重置）。 开始输入使秒表开始以10Hz时钟速率递增（即每0.1秒计数一次）； 停止输入使计数器停止递增，但使数码管显示当前计数器值； 每次按下按钮时，增量输入都会导致显示值增加一次，无论按住增量按钮多长时间； 复位/清除输入强制计数器值为零。</li>
+</ul>
+<h1 id="需求分析">需求分析</h1>
+<ul>
+<li>需要用到小脚丫的两个数码管及按键，实现秒表功能。</li>
+<li>由于有计时功能，需要用到小脚丫的12M晶振作为时钟源，要求0.1s准确更新一次，即10Hz更新一次，理论实现方式为在12MHz的每个时钟上升沿计数一次，计到12*10^5后更新一次即为10Hz更新。</li>
+<li>用到四个按钮输入，由于秒表的高精度性，需要对按键进行消抖。</li>
+<li>计划利用三段式状态机进行编写</li>
+</ul>
+<h1 id="实现方式">实现方式</h1>
+<ul>
+<li>使用三段式状态机编写主模块，子模块分为seg数码管模块、debounce消抖模块（也使用了三段式状态机）、color_breath彩虹呼吸灯模块。<br>
+*给出三段式状态机基本写法：</li>
+</ul>
+<pre><code>always @(posedge clk or negedge rst) begin
+    if(!rst) begin  //异步复位
+        STATE_C &lt;= IDLE; 
+    end
+    else begin
+        STATE_C &lt;= STATE_N; //每个时钟上升沿到来时更新状态
+    end
+end
+
+always @(*) begin
+	case(STATE_C)
+		STATE_1: begin
+		…
+		end
+		STATE_2: begin
+		…
+		end
+		…
+		…
+		…
+	endcase
+end
+
+always @(posedge clk or negedge rst) begin
+	if(!rst) begin
+	…
+	end
+	else if(STATE_C == STATE_1) begin
+	…
+	end
+	else if(…) begin
+	…
+	end
+end
+</code></pre>
+<ul>
+<li>此程序可分为6个状态，STOP暂停状态、STOP_PRESS按下暂停键后一直不放手的状态，COUNT计数状态、COUNT_PRESS按下开始键后一直不放手状态、INCRE增一键、S0按下增一键后不放手状态，将程序分好状态后续的实现方式可以很简单。</li>
+<li>seg数码管模块直接定义每个数字对应的的数值，直接赋值即可。</li>
+<li>color_breath彩虹呼吸灯模块，首先定义pwm发生器模块，再动态调整pwm的占空比，使其由低到高再由高到低循环，RGB端口调用pwm模块实现彩虹呼吸灯。</li>
+<li>彩虹呼吸灯为原创功能，其具体功能为，增加了三种模式，普通模式为0.1s更新，模式2为0.01s更新一次，模式3为1s更新一次，不同的模式闪烁不同的呼吸灯。</li>
+<li>原创增加了红色LED灯来扩展显示的秒数，以普通模式为例，显示时间从0<sub>9.9s后会亮起一个LED灯，同时再次从0</sub>9.9s循环，之后再次亮起一个LED灯，在8个LED灯亮满后且再次达到9.9s才算一次完整循环，即由基本要求的9.9s计时扩展到了89.9s计时，且保证精度不变。</li>
+<li>使用拨码开关控制模式的切换，且只有在STOP状态下可以进行模式切换，注意！switch为4’b0000时为普通模式，4’b0001时为高精度模式，精确到0.01s，4’b0011时为高范围模式，精确到1s，拨码为该三种情况外的其他情况时均为普通模式。</li>
+</ul>
+<h1 id="功能框图">功能框图</h1>
+<p>状态转移关系如下图：<br>
+<img src="https://lingdajin.github.io/post-images/1708260343986.PNG" alt="" loading="lazy"></p>
+<h1 id="代码及说明">代码及说明</h1>
+<p>1.1顶层模块参数定义</p>
+<pre><code>//参数、状态定义
+parameter STATE_WID = 6;    //状态位宽
+parameter STOP = 6'b000_001; //松开后暂停状态（独热码）
+parameter COUNT = 6'b000_010;    //松开后计数状态
+parameter INCRE = 6'b000_100;    //增一状态
+parameter S0 = 6'b001_000;   //增一后一直按住的状态（不计数）
+parameter COUNT_PRESS = 6'b010_000;    //开始计数后一直按住的状态
+parameter STOP_PRESS = 6'b100_000;   //暂停后一直按住的状态
+
+parameter COUNT_CLK_1 = 1199999;  //计数1200000次，即0.1s
+parameter COUNT_CLK_2 = 119999; //计数120000次，即0.01s
+parameter COUNT_CLK_3 = 11999999;  //计数12000000次，即1s
+
+parameter PRESS = 1'b1; //按钮按下
+parameter UP = 1'b0;    //按钮抬起
+</code></pre>
+<p>1.2状态转换</p>
+<pre><code>always @(*) begin
+    case(STATE_C)
+        STOP: begin
+            if(btn_de == PRESS) begin   //按下按键，状态转换
+                STATE_N = COUNT_PRESS;
+            end
+            else if(increase_de == PRESS) begin //按下加一键，状态转换
+                STATE_N = INCRE;
+            end
+            else begin  //保持状态
+                STATE_N = STOP;
+            end
+        end
+        COUNT_PRESS: begin
+            if(btn_de == PRESS) begin
+                STATE_N = COUNT_PRESS;  //一直按住就不会变动，也为计数状态
+            end
+            else if(btn_de == UP) begin
+                STATE_N = COUNT;    //松开后进入计数状态
+            end
+            else begin
+                STATE_N = COUNT_PRESS;
+            end
+        end
+        COUNT: begin
+            if(btn_de == PRESS) begin
+                STATE_N = STOP_PRESS;
+            end
+            else begin
+                STATE_N = COUNT;
+            end
+        end
+        STOP_PRESS: begin
+            if(btn_de == PRESS) begin
+                STATE_N = STOP_PRESS;
+            end
+            else if(btn_de == UP) begin
+                STATE_N = STOP; //松开后进入暂停状态
+            end
+            else begin
+                STATE_N = STOP_PRESS;
+            end
+        end
+        INCRE: begin
+            if(increase_de == PRESS) begin
+                STATE_N = S0;
+            end
+            else if(increase_de == UP) begin
+                STATE_N  = STOP;
+            end
+            else begin
+                STATE_N = INCRE;
+            end
+        end
+        S0: begin
+            if(increase_de == PRESS) begin
+                STATE_N = S0;
+            end
+            else if(increase_de == UP) begin
+                STATE_N = STOP;
+            end
+            else begin
+                STATE_N = S0;
+            end
+        end
+        default : begin //状态要完善
+            STATE_N = STATE_C;
+        end
+    endcase
+end
+</code></pre>
+<p>1.3定义计时器，定义每个状态下应当做些什么</p>
+<pre><code>always @(posedge clk or negedge rst) begin
+    if(!rst) begin  //复位
+        count &lt;= 0;
+        y1 &lt;= 0;
+        y0 &lt;= 0;
+        led_reg &lt;= 0;
+    end
+    else if(STATE_C == COUNT || STATE_C == COUNT_PRESS) begin   //在COUNT、COUNT_PRESS启动计时
+        if(count == count_choose) begin
+            count &lt;= 0; //计时器清零
+            if(y0 == 9) begin
+                y0 &lt;= 0; //数字指示器个位清零
+                if(y1 == 9) begin
+                    y1 &lt;= 0;    //计满，数字指示器十位清零
+                    if(led_reg == 255) begin
+                        led_reg &lt;= 0;   //进位计满，进位指示器清零
+                    end
+                    else begin
+                        led_reg &lt;= (led_reg &lt;&lt; 1) + 1; //进位，左移一位并加一
+                    end
+                end
+                else begin
+                    y1 &lt;= y1 + 1;   //数字指示器十位进一
+                end
+            end
+            else begin
+                y0 &lt;= y0 + 1; //每0.1s数字指示器个位加一
+            end
+        end
+        else begin
+            count &lt;= count + 1; //在计时状态启动计时器
+        end
+    end
+    else if(STATE_C == INCRE) begin //在INCRE状态数字指示器加一
+        count &lt;= 0; //计时器清零
+        if(y0 == 9) begin
+            y0 &lt;= 0; //数字指示器个位清零
+            if(y1 == 9) begin
+                y1 &lt;= 0;    //数字指示器十位清零
+                if(led_reg == 255) begin
+                    led_reg &lt;= 0;   //进位计满，进位指示器清零
+                end
+                else begin
+                    led_reg &lt;= (led_reg &lt;&lt; 1) + 1; //进位，左移一位并加一
+                end
+            end
+            else begin
+                y1 &lt;= y1 + 1;   //数字指示器十位进一
+            end
+        end
+        else begin
+            y0 &lt;= y0 + 1; //数字指示器个位加一
+        end
+    end
+    else begin
+        count &lt;= 0; //在STOP、STOP_PRESS和S0状态计时器清零
+        y1 &lt;= y1;
+        y0 &lt;= y0;  //在STOP、STOP_PRESS和S0状态数字指示器不变
+        led_reg &lt;= led_reg;
+        case(switch)    //仅可在STOP、STOP_PRESS和S0状态下改变模式
+            4'b0000: begin
+                count_choose &lt;= COUNT_CLK_1; //普通秒表模式，精确到0.1s
+                mod_reg &lt;= 0;
+            end
+            4'b0001: begin
+                count_choose &lt;= COUNT_CLK_2; //模式2，精确到0.01s
+                mod_reg &lt;= 1;
+            end
+            4'b0011: begin
+                count_choose &lt;= COUNT_CLK_3; //模式3，精确到1s
+                mod_reg &lt;= 2;
+            end
+            default: begin
+                count_choose &lt;= COUNT_CLK_1;
+                mod_reg &lt;= 0;
+            end
+        endcase
+    end
+end
+</code></pre>
+<p>2.数码管控制</p>
+<pre><code>module seg(y1,y0,seg0,seg1);
+input [3:0]y1;
+input [3:0]y0;
+output [8:0]seg1;
+output [8:0]seg0;
+reg [8:0]seg_reg [9:0];
+
+initial begin
+    seg_reg[0] = 9'h3f;
+    seg_reg[1] = 9'h06;
+    seg_reg[2] = 9'h5b;
+	seg_reg[3] = 9'h4f;
+	seg_reg[4] = 9'h66;
+	seg_reg[5] = 9'h6d;
+	seg_reg[6] = 9'h7d;
+	seg_reg[7] = 9'h07;
+	seg_reg[8] = 9'h7f;
+    seg_reg[9] = 9'h6f;
+end
+
+assign seg1 = seg_reg[y1];
+assign seg0 = seg_reg[y0];
+
+
+endmodule
+</code></pre>
+<p>3.1PWM发生器</p>
+<pre><code>module pwm(out,duty,clk);
+	input [7:0] duty;   // 输入，表示占空比，范围从0到255
+	input clk;         // 输入，时钟信号用于同步
+	output reg out;     // 输出信号，表示PWM波形
+	reg [7:0] buffer;      // 8位寄存器，用于存储当前计数值
+ 
+always @ (posedge clk)  begin 
+	buffer &lt;= buffer + 1;// 在每个时钟上升沿递增缓冲区值
+	if (buffer &lt; duty)// 将缓冲区值与占空比进行比较:如果缓冲区小于占空比，则将输出设置为0；否则，设置为1。
+		begin
+			out &lt;= 0;
+		end
+		else begin
+			out &lt;= 1;
+		end
+	end
+endmodule
+</code></pre>
+<p>3.2通过不断改变占空比实现呼吸效果</p>
+<pre><code>always @(posedge divide_clk) begin  //使RGB_buffer在0~255递增再从255~0递减
+    if(wheel_position &lt; 510 )   wheel_position &lt;= wheel_position + 1;
+    else wheel_position &lt;= 0;
+    if(wheel_position &lt; 255) begin
+        RGB_buffer &lt;= wheel_position;
+    end
+    else begin
+        RGB_buffer &lt;= 510 - wheel_position;
+    end
+end
+</code></pre>
+<p>4.1消抖模块状态转换关系</p>
+<pre><code>//参数定义
+localparam KEY_W = 1;
+localparam TIME_20MS = 24_0000;
+
+localparam IDLE  = 4'b0001;//初始状态 
+localparam DOWN  = 4'b0010;//按键按下抖动
+localparam HOLD  = 4'b0100;//按键按下后稳定
+localparam UP    = 4'b1000;//按键上升抖动
+//状态转移条件定义
+wire idle2down; //初始转移到按下抖动
+wire down2idle; //按下抖动转移到初始
+wire down2hold; //按下抖动转移到按下稳定
+wire hold2up  ; //按下稳定转移到上升抖动
+wire up2idle  ; //上升抖动转移到初始
+
+always@(*)begin
+    case(state_c)
+        IDLE:begin
+            if(idle2down)begin
+                state_n = DOWN;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        DOWN:begin
+            if(down2idle)begin
+                state_n = IDLE;
+            end
+            else if(down2hold)begin
+                state_n = HOLD;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        HOLD:begin
+            if(hold2up)begin
+                state_n = UP;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        UP:begin
+            if(up2idle)begin
+                state_n = IDLE;
+            end
+            else begin
+                state_n = state_c;
+            end
+        end
+        default:state_n = state_c;
+    endcase
+end
+</code></pre>
+<p>4.2检测按键抖动来定义状态转换</p>
+<pre><code>assign idle2down = (state_c == IDLE) &amp;&amp; nedge;//检测到下降沿
+assign down2idle = (state_c == DOWN) &amp;&amp; (pedge&amp;&amp; end_cnt_20ms);//计时未到20ms时且出现上升沿表示按键意外抖动，回到初始态
+assign down2hold = (state_c == DOWN) &amp;&amp; (~pedge &amp;&amp; end_cnt_20ms);//计时到20ms时没有出现上升沿标志按键按下后保持稳定
+assign hold2up   = (state_c == HOLD) &amp;&amp; (pedge);//检测到上升沿跳转到上升态
+assign up2idle   = (state_c == UP)   &amp;&amp; end_cnt_20ms;//计数器计数到20ms跳转到初始态
+</code></pre>
+<p>4.3按键赋值</p>
+<pre><code>//按键赋值
+always@(posedge clk or negedge rst_n)begin
+    if(!rst_n)begin
+        key_out_r &lt;= {KEY_W{1'b0}};
+    end
+    else if(state_c == HOLD)begin
+        key_out_r &lt;= {KEY_W{1'b1}};
+    end
+    else begin
+        key_out_r &lt;= {KEY_W{1'b0}};
+    end
+end
+assign key_out = key_out_r;
+</code></pre>
+<h1 id="仿真波形图">仿真波形图</h1>
+<p>1.编写总体测试文件</p>
+<pre><code>`timescale 1ns/1ns
+module counter_tb();
+reg clk;
+reg btn;
+reg increase;
+reg rst;
+wire [8:0]seg1;
+wire [8:0]seg0;
+
+counter uut(
+    .clk(clk),
+    .btn(btn),
+    .rst(rst),
+    .increase(increase),
+    .seg0(seg0),
+    .seg1(seg1)
+    );
+
+always #(125/3) clk = ~clk;
+// always #5 clk = ~clk;
+
+initial begin
+    rst = 1;
+    btn = 1;
+    increase = 1;
+    clk = 1;
+    
+    rst = 0;
+    #5
+    rst = 1;    //初始复位
+    #9000000
+
+    //==============按下按钮开始计时=============
+    #100
+    btn = 0;
+    #100
+    btn = 1;
+    // #900000000
+    #9000000
+
+    //==============按下按钮暂停====================
+    btn = 0;
+    #100
+    btn = 1;
+    #9000000
+
+    //=================测试加一键========================
+    increase = 0;
+    #1000
+    increase = 1;
+    #9000000
+
+    //====================测试复位键==================
+    rst = 0;
+    #100
+    rst = 1;
+    #4000000
+    $stop;
+    
+end
+
+endmodule
+</code></pre>
+<p>输出波形<br>
+<img src="https://lingdajin.github.io/post-images/1708260436459.png" alt="" loading="lazy"><br>
+2.测试消抖</p>
+<pre><code>`timescale 1ns/1ns
+module debounce_tb();
+reg clk;
+reg rst;
+reg key_in;
+wire key_out;
+
+debounce uut(
+    .clk(clk),
+    .rst_n(rst),
+    .key_in(key_in),
+    .key_out(key_out)
+    );
+always #(125/3) clk = ~clk;
+
+initial begin
+    rst = 1;
+    key_in = 1;
+    clk = 1;
+
+    rst = 0;
+    #5
+    rst = 1;    //初始复位
+    #1000000
+
+    key_in = 0;
+    #200000
+    key_in = 1; //按下按键抖动
+    #200000
+    key_in = 0;
+    #25000000
+
+    key_in = 1;
+    #200000
+    key_in = 0; //抬起按键抖动
+    #200000
+    key_in = 1;
+    #30000000
+    $stop;
+end
+
+endmodule
+</code></pre>
+<p>输出波形:<br>
+<img src="https://lingdajin.github.io/post-images/1708260460988.png" alt="" loading="lazy"><br>
+可见，在输入模拟按下抖动信号大约20ms后才会输出消抖后信号，表明进入了稳定按下的状态，在输入模拟抬起抖动信号时，在上升沿出现一瞬间就输出了消抖后信号，表明已经不在按下状态。且由于小脚丫特性，输入信号中高电平代表未按下，低电平代表按下，而输出信号经过修正，高电平代表按下，低电平代表未按下。</p>
+<h1 id="fpga资源利用说明">FPGA资源利用说明</h1>
+<p>Design Summary<br>
+Number of registers:    241 out of  4635 (5%)<br>
+PFU registers:          241 out of  4320 (6%)<br>
+PIO registers:            0 out of   315 (0%)<br>
+Number of SLICEs:       212 out of  2160 (10%)<br>
+SLICEs as Logic/ROM:    212 out of  2160 (10%)<br>
+SLICEs as RAM:            0 out of  1620 (0%)<br>
+SLICEs as Carry:        116 out of  2160 (5%)<br>
+Number of LUT4s:        421 out of  4320 (10%)<br>
+Number used as logic LUTs:        189<br>
+Number used as distributed RAM:     0<br>
+Number used as ripple logic:      232<br>
+Number used as shift registers:     0<br>
+Number of PIO sites used: 40 + 4(JTAG) out of 105 (42%)<br>
+Number of block RAMs:  0 out of 10 (0%)<br>
+Number of GSRs:        1 out of 1 (100%)</p>
+<p>Diamond MAP分析界面截图:<br>
+<img src="https://lingdajin.github.io/post-images/1708260487745.png" alt="" loading="lazy"></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Verilog秒表计时器]]></title>
+        <id>https://lingdajin.github.io/post/verilog-miao-biao-ji-shi-qi/</id>
+        <link href="https://lingdajin.github.io/post/verilog-miao-biao-ji-shi-qi/">
+        </link>
+        <updated>2023-11-17T14:24:12.000Z</updated>
+        <content type="html"><![CDATA[<p>使用<strong>Verilog</strong>实现秒表计时器功能。</p>
+<h1 id="要求">要求：</h1>
+<ul>
+<li>数码管从0-20s计时，20s时自动归零</li>
+<li>动态驱动数码管</li>
+<li>有暂停按钮和归零按钮</li>
+<li>有按键消抖</li>
+<li>编写仿真文件，得到仿真波形图</li>
+</ul>
+<h1 id="原理">原理：</h1>
+<ul>
+<li>要实现计时功能，需要用到时钟信号，在时钟信号上升时计数器加一</li>
+<li>动态驱动数码管是指开发板上的数码管为共阴极，一次只可使一个数码管导通，但通过时钟信号可以让不同数码管不停切换显示，只要其切换频率大于人眼可见频率，即可视为多个数码管同时显示不同数字。</li>
+<li>使用100Hz频率时钟，若要使计时器每1s加一，需要对时钟信号分频，将100Hz信号分为1Hz信号。</li>
+</ul>
+<h1 id="code">CODE</h1>
+<p>采用多模块设计</p>
+<ul>
+<li><strong>count.v</strong>(顶层文件)</li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:count.v
+*/
+module count(CLK,RST,btn,seg,cat);
+   input CLK,RST,btn;
+   wire [4:0] Q;	//计数器
+   wire [3:0] Q0;	//计数器个位
+   wire [3:0] Q1;	//计数器十位
+   output [6:0] seg;	//数码管
+   output [7:0]cat;	//数码管编号
+   reg [4:0] Q_TMP = 0;	//计数器前置
+   reg pulse = 0;	//暂停信号
+   wire btn_debounce;	//消抖后信号
+   reg clk_out = 0;	//1HZ分频时钟
+   reg [5:0] counter = 0; // 定义时钟计数器，用于计数时钟周期
+
+   assign Q = Q_TMP;	//Q始终等于Q_TMP
+   
+   always @(posedge CLK) begin
+   	counter &lt;= counter + 1; // 时钟计数器加1
+   	if (counter == 49) begin // 当时钟计数器达到49时，输出一个时钟周期
+       clk_out &lt;= ~clk_out; // 取反输出时钟信号
+       counter &lt;= 0; // 时钟计数器清零
+   	end
+   end
+   
+   always @(posedge clk_out or posedge RST) begin	//计数器控制
+   	if (RST)	Q_TMP = 0;
+   	else if (Q_TMP==19) 	Q_TMP = 0;
+   	else if(pulse)	Q_TMP &lt;= Q_TMP;	//pulse为1时暂停
+   	else Q_TMP &lt;= Q_TMP + 1;	//pulse为0时不暂停
+   end
+
+   always @(posedge btn_debounce) begin	//暂停控制
+   	pulse &lt;= ~pulse;	//按下按钮将使暂停控制器翻转；
+   end
+
+   switch v2(	//拆分器，将两位数Q拆分为个位Q0和十位Q1
+   .Q(Q),
+   .OQ0(Q0),
+   .OQ1(Q1)
+   );
+
+   seg7 v1(	//动态驱动数码管
+   .A0(Q0),
+   .A1(Q1),
+   .Y(seg),
+   .clk(CLK),
+   .cat(cat)
+   );
+
+   key_debounce v3(	//按键消抖
+   .clk(CLK),
+   .i_key(btn),
+   .o_key(btn_debounce)
+   );
+endmodule
+</code></pre>
+<ul>
+<li><strong>switch.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:switch.v
+ */
+module switch(Q,OQ0,OQ1);	//拆分模块
+	input [3:0]Q;	//输入两位数
+	output reg[3:0]OQ0;	//个位数字
+	output reg[3:0]OQ1;	//十位数字
+	
+	always@(*) begin
+		if(Q&lt;=9) begin
+			OQ0 = Q;
+			OQ1 = 0;
+		end
+		else begin
+			OQ0 = Q - 10;
+			OQ1 = 1;
+		end
+	end
+endmodule
+</code></pre>
+<ul>
+<li><strong>seg7.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:seg7.v
+ */
+module seg7(A0,A1,Y,clk,cat);	//动态驱动数码管（当前驱动两位）
+	input[3:0] A0;	//个位
+	input [3:0]A1;	//十位
+	output reg[7:0] cat;	//数码管使能端（置0启动）
+	input clk;	//时钟信号
+	output[6:0] Y;	//单个数码管信号
+	reg [6:0] Y;
+	always@(*)begin	//由于只用驱动两位，故只需使用时钟信号的上升沿和下降沿即可实现动态驱动（驱动三位及以上需增加中介reg变量）
+		if(clk) begin
+		case(A0)
+		4'b0000 : Y=7'b1111110;//0
+		4'b0001 : Y=7'b0110000;//1
+		4'b0010 : Y=7'b1101101;//2
+		4'b0011 : Y=7'b1111001;//3
+		4'b0100 : Y=7'b0110011;//4
+		4'b0101 : Y=7'b1011011;//5
+		4'b0110 : Y=7'b1011111;//6
+		4'b0111 : Y=7'b1110000;//7
+		4'b1000 : Y=7'b1111111;//8
+		4'b1001 : Y=7'b1111011;//9
+		default : Y=7'b0000000;
+		endcase
+		cat = 8'b11111110;	//数码管0使能（个位）
+		end
+		else if(~clk) begin
+			case(A1)
+		4'b0000 : Y=7'b1111110;//0
+		4'b0001 : Y=7'b0110000;//1
+		4'b0010 : Y=7'b1101101;//2
+		4'b0011 : Y=7'b1111001;//3
+		4'b0100 : Y=7'b0110011;//4
+		4'b0101 : Y=7'b1011011;//5
+		4'b0110 : Y=7'b1011111;//6
+		4'b0111 : Y=7'b1110000;//7
+		4'b1000 : Y=7'b1111111;//8
+		4'b1001 : Y=7'b1111011;//9
+		default : Y=7'b0000000;
+		endcase
+		cat = 8'b11111101;	//数码管1使能（十位）
+		end
+	end
+endmodule
+</code></pre>
+<ul>
+<li><strong>key_debounce.v</strong></li>
+</ul>
+<pre><code>/*
+工程名:count
+文件名:key_debounce.v
+ */
+module key_debounce(input clk,  i_key,output  o_key );	//按键消抖
+	reg r_key_buf1, r_key_buf2;
+	
+	always@(negedge clk)begin
+		r_key_buf2 &lt;= r_key_buf1;
+		r_key_buf1 &lt;= i_key;
+	end
+	
+	assign o_key = clk &amp; r_key_buf1 &amp; (~r_key_buf2);
+endmodule
+</code></pre>
+<h1 id="仿真">仿真</h1>
+<ul>
+<li>仿真文件</li>
+</ul>
+<pre><code>`timescale 1ms / 1ms
+
+module count_tb;
+
+reg clk;
+reg btn0;
+reg reset;
+wire [6:0] seg;
+wire [7:0] cat;
+
+// 实例化被测试模块
+count uut (
+	 .CLK(clk),
+	 .RST(reset),
+	 .btn(btn0),
+	 .seg(seg),
+	 .cat(cat)
+);
+
+	always#5 clk = ~clk;  // 100Hz时钟
+
+// 初始化和模拟输入
+initial begin
+    // 初始化
+	 clk = 0;
+    btn0 = 0;
+	 reset = 0;
+	 #3000;
+    reset = 1;
+	 #20
+    reset = 0;
+	 #4000
+	 
+    // 模拟按钮按下
+    #10;
+    btn0 = 1;
+    #20;
+    btn0 = 0;//pulse
+
+    #3000;
+	 
+	 #10 btn0 = 1;
+	 #20 btn0 = 0;//continue
+
+	 #3000;
+	 
+	 #10 btn0 = 1;
+	 #40 btn0 = 0;//pulse
+	 #3000;
+    $stop;
+end
+endmodule
+</code></pre>
+<ul>
+<li>仿真波形<br>
+<img src="https://lingdajin.github.io/post-images/1700232903647.png" alt="" loading="lazy"><br>
+可以看出，已完美实现计时器功能，拥有暂停、归零功能，按钮已进行消抖。</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[阳康宝典-基于微信小程序的论坛]]></title>
+        <id>https://lingdajin.github.io/post/markdown/</id>
+        <link href="https://lingdajin.github.io/post/markdown/">
+        </link>
+        <updated>2023-11-14T14:18:06.000Z</updated>
+        <content type="html"><![CDATA[<figure data-type="image" tabindex="1"><img src="https://lingdajin.github.io/post-images/1699963250064.png" alt="" loading="lazy"></figure>
+<p><strong>项目名称:</strong> 阳康宝典</p>
+<p><strong>简介：</strong></p>
+<p>2022年12月26日，深夜二十三点零一分，国家卫健委发布2022年第7号公告：将新型冠状病毒肺炎更名为新型冠状病毒感染。与此同时，国务院联防联控机制发布对新型冠状病毒感染实施“乙类乙管”总体方案，宣告全民抗疫的时代画上了终止符。</p>
+<p>随着国家的逐步放开，人口流动量也逐渐增大，许多人因为个人防护不到位而不幸中招，这也给其他人带来了一丝焦虑与恐慌。</p>
+<p>没变“羊”却不知如何科学保护自己？</p>
+<p>不幸变“羊”后不知如何调理，或是因此产生的负能量不知向谁诉说？</p>
+<p>少年，特此为你准备了一本《阳康宝典》，助力未“羊”人时时刻刻远离病毒侵扰，助力“羊”们早日康复！</p>
+<p><strong>创意过程（思维导图）：</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://lingdajin.github.io/post-images/1699963286624.jpeg" alt="" loading="lazy"></figure>
+<p>四象限法：</p>
+<figure data-type="image" tabindex="3"><img src="https://lingdajin.github.io/post-images/1699963304258.png" alt="" loading="lazy"></figure>
+<p>商业模式画布：</p>
+<ul>
+<li>客户细分：未“羊”人、“羊”、“阳康”患者</li>
+<li>价值主张：为用户提供防疫科普、心理疏导服务</li>
+<li>渠道通路：用户自发推广</li>
+<li>客户关系：相互依赖型</li>
+<li>收入来源：公益性质，用户可以自发支持</li>
+<li>核心资源：用户使用量、医疗资讯的准确度</li>
+<li>关键业务：小程序为弱运营，只需要对功能进行及时维护，及时debug，吸取用户意见开发新功能</li>
+<li>重要伙伴：心理咨询机构、专业医疗机构</li>
+<li>成本结构：主要集中于维护费用</li>
+</ul>
+<p><strong>用户分析：</strong></p>
+<p>目标用户：未“羊”人、“羊”、“阳康”患者</p>
+<p>未“羊”人：身边亲友大部分已经感染，自己会因此紧张焦虑，担心自己也会中招，甚至因此出现”幻阳症”。</p>
+<p>“羊”：康复过程十分难受，易产生许多负能量，如不及时排遣就不利于自身心理健康。</p>
+<p>“阳康患者”：作为过来人，可以为身边的小“羊”人提供暖心的安慰以及战胜病魔的经验之谈。</p>
+<p>用户画像：</p>
+<figure data-type="image" tabindex="4"><img src="https://lingdajin.github.io/post-images/1699963372818.png" alt="" loading="lazy"></figure>
+<p>所听：在与父母及同学交流时，他们经常担心自己也中招，比如身体出现不适症状后就担心是感染的前兆。</p>
+<p>所见：</p>
+<ul>
+<li>观看新闻得知现在处于疫情高峰期，心中不由得产生恐慌。</li>
+<li>微博超话中有人分享自己的阳康经历，也目睹了评论区中大家的相互安慰抱团去年。</li>
+<li>同时被部分超话中有人带病坚持学习的精神感动，自己也想加入其中与大家共勉，一起战胜奥密克戎，一起进步。</li>
+</ul>
+<p>所想&amp;所感：</p>
+<ul>
+<li>自己身体状况不好带来的情绪低落</li>
+<li>食欲不振</li>
+<li>学习效率低下</li>
+<li>焦虑感、恐慌感</li>
+</ul>
+<p>所说&amp;所做：</p>
+<ul>
+<li>尽己所能去安慰身边亲友</li>
+</ul>
+<p><strong>痛点&amp;需求：</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>痛点</strong></th>
+<th><strong>需求</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>对如何进行自我防护、感染后如何自我调理毫无头绪</strong></td>
+<td><strong>急需一款程序来为自己提供贴身的健康指导</strong></td>
+</tr>
+<tr>
+<td><strong>康复期间有千种愁绪，更与何人说？</strong></td>
+<td><strong>需要一个释放自己负面情绪、接受他人温暖关怀的窗口</strong></td>
+</tr>
+<tr>
+<td><strong>感染期间学习效率低下，自控力不足，可患病时身体不适，情绪不稳定</strong></td>
+<td><strong>需要一位无形的伙伴督促自己每天适量完成任务，并时不时给自己输入鼓励的话语，帮助稳定情绪，渡过难关</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>场景分析（用户的使用路径图）：</strong></p>
+<figure data-type="image" tabindex="5"><img src="https://lingdajin.github.io/post-images/1699963413930.png" alt="" loading="lazy"></figure>
+<p><strong>系统功能拆解：</strong></p>
+<p>分析：</p>
+<table>
+<thead>
+<tr>
+<th><strong>小程序核心功能</strong></th>
+<th><strong>技术模块</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>用户登录/注册</strong></td>
+<td>使用微信小程序提供的userinfo获得用户微信名称头像，并判断在云数据库是否有相应用户：1.无，则在数据库中为其创建一个新的用户，名称与头像默认与微信一致（可后续在小程序中修改）2.有，则调用数据库中该用户信息，实现登录功能。</td>
+</tr>
+<tr>
+<td><strong>论坛</strong></td>
+<td>需用到云开发数据库功能，网上有大量微信小程序版论坛免费模型，可以借鉴使用，大体功能为发帖、浏览、评论、搜索、删除。</td>
+</tr>
+<tr>
+<td><strong>打卡功能</strong></td>
+<td>外接蜂鸣器、开关等硬件，并配备有OLED显示屏实时报时，当到达用户设定时间时，蜂鸣器开始工作，响铃1分钟，在此期间用户按下按钮开关即可停止。从而实现提醒功能（比如提醒用户到达喝水的时间了，此刻畅饮一杯凉开水！）</td>
+</tr>
+<tr>
+<td><strong>个人防护&amp;生活监测</strong></td>
+<td>提前搜集好防护小知识上传至服务器，在该模块用户可以查看防护知识，并可以自己设置按时喝水提醒，每隔多长时间提醒一次喝水，与打卡提醒实现差不多。</td>
+</tr>
+</tbody>
+</table>
+<p>系统功能架构：</p>
+<figure data-type="image" tabindex="6"><img src="https://lingdajin.github.io/post-images/1699963437670.png" alt="" loading="lazy"></figure>
+<p>流程图：</p>
+<figure data-type="image" tabindex="7"><img src="https://lingdajin.github.io/post-images/1699963454172.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://lingdajin.github.io/post-images/1699963460434.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://lingdajin.github.io/post-images/1699963473383.png" alt="" loading="lazy"></figure>
+<p><strong>功能实现</strong></p>
+<ul>
+<li><strong>小程序</strong></li>
+</ul>
+<h2 id="文件结构">文件结构：</h2>
+<figure data-type="image" tabindex="10"><img src="https://lingdajin.github.io/post-images/1699963498545.png" alt="" loading="lazy"></figure>
+<h2 id="登陆界面">登陆界面：</h2>
+<figure data-type="image" tabindex="11"><img src="https://lingdajin.github.io/post-images/1699963509505.png" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/login/login.wxml--&gt;
+
+&lt;view class='top_tip'&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;欢迎您来到阳康宝典&lt;/view&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;一个病友交流论坛&lt;/view&gt;
+
+&lt;form catchsubmit=&quot;formSubmit&quot;&gt;
+
+&lt;view class='login'&gt;
+
+&lt;view class=&quot;user&quot;&gt;用户名
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='username' type='text' placeholder='请输入用户名'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;password&quot;&gt;密码
+
+&lt;view class=&quot;hold2&quot;&gt;&lt;input class=&quot;input&quot; name='password' password placeholder='请输入密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; form-type='submit'&gt;登录&lt;/button&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; bindtap=&quot;youke&quot;&gt;游客登录&lt;/button&gt;
+
+&lt;/form&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;reg&quot; bindtap=&quot;toReg&quot;&gt;没有账号？&lt;/view&gt;`
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/login/login.js
+
+const app = getApp()
+
+Page({
+
+/\*\*
+
+\* 页面的初始数据
+
+\*/
+
+data: {
+
+},
+
+formSubmit(e) {
+
+console.log('form发生了submit事件，携带数据为：', e.detail.value)
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/cms/user/login',
+
+url: 'http://192.168.137.1:5000/cms/user/login',
+
+method: 'POST',
+
+data: {
+
+username: e.detail.value.username,
+
+password: e.detail.value.password
+
+},
+
+header: {
+
+'content-type': 'application/json' // 默认值
+
+},
+
+success:function(res) {
+
+var obj = res.data
+
+console.log(obj)
+
+wx.setStorage({
+
+key:&quot;token&quot;,
+
+data:obj.access_token
+
+})
+
+wx.setStorage({
+
+key:&quot;username&quot;,
+
+data:e.detail.value.username
+
+})
+
+if(obj.code == 10031) {
+
+wx.showToast({
+
+title: '用户名或密码错误',
+
+icon: 'error'
+
+});
+
+}
+
+else if(obj.code == 10030) {
+
+wx.showToast({
+
+title: '用户名或密码不能为空',
+
+icon: 'error'
+
+});
+
+}
+
+else {
+
+wx.showToast({
+
+title: '登录成功',
+
+})
+
+wx.switchTab({
+
+url: '/pages/allshudong_page/allshudong',
+
+})
+
+}
+
+}
+
+})
+
+},
+
+toReg(){
+
+wx.navigateTo({
+
+url: '/pages/register_page/home1',
+
+})
+
+},
+
+youke(){{
+
+wx.switchTab({
+
+url: '/pages/allshudong_page/allshudong',
+
+})
+
+}}
+
+})
+</code></pre>
+<h2 id="注册界面">注册界面：</h2>
+<figure data-type="image" tabindex="12"><img src="https://lingdajin.github.io/post-images/1699964279730.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--index.wxml--&gt;
+
+&lt;view class='top_tip'&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;欢迎您来到阳康宝典&lt;/view&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;但一个账号是必不可少的&lt;/view&gt;
+
+&lt;form catchsubmit=&quot;onSubmit&quot;&gt;
+
+&lt;view class='login'&gt;
+
+&lt;view class=&quot;user&quot;&gt;用户名
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='username' type='text' placeholder='请输入用户名'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;password&quot;&gt;密码
+
+&lt;view class=&quot;hold2&quot;&gt;&lt;input class=&quot;input&quot; name='password' password placeholder='请输入密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;confirm&quot;&gt;请确认
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='confirm_password' password placeholder='请重复密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; form-type='submit'&gt;注册&lt;/button&gt;
+
+&lt;/form&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;reg&quot; bindtap=&quot;toLogin&quot;&gt;已有账号？&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// index.js
+
+// const app = getApp()
+
+const app = getApp()
+
+Page({
+
+data: {
+
+},
+
+onSubmit: function (e) {
+
+console.log(e.detail.value);
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/cms/user/register',
+
+url: 'http://192.168.137.1:5000/cms/user/register',
+
+method: 'POST',
+
+data: {
+
+username: e.detail.value.username,
+
+password: e.detail.value.password,
+
+confirm_password: e.detail.value.confirm_password
+
+},
+
+header: {
+
+'content-type': 'application/json' // 默认值
+
+},
+
+success:function(res) {
+
+var obj = res.data
+
+console.log(obj)
+
+if(obj.code == 10030) {
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+});
+
+}else if(obj.code == 10071) {
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+});
+
+}else {
+
+wx.showToast({
+
+title: '注册成功',
+
+icon: 'success'
+
+})
+
+}
+
+}
+
+})
+
+},
+
+toLogin(e) {
+
+wx.reLaunch({
+
+url:'/pages/login_page/login',
+
+});
+
+}
+
+});
+</code></pre>
+<h2 id="广场界面">广场界面：</h2>
+<figure data-type="image" tabindex="13"><img src="https://lingdajin.github.io/post-images/1699964339203.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!-- pages/allshudong_page/allshudong.wxml--&gt;
+
+&lt;view class='container'&gt;
+
+&lt;view class=&quot;comment-list&quot;&gt;
+
+&lt;block wx:for=&quot;{{array}}&quot;&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;navigator url='/pages/oneshudong_page/oneshudong?id={{item.id}}'&gt;
+
+&lt;view class=&quot;comment-item&quot;&gt;
+
+&lt;view class=&quot;Onetitle&quot;&gt;{{item.title}}&lt;/view&gt;
+
+&lt;view class=&quot;Oneauthor&quot;&gt;{{item.author}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/navigator&gt;
+
+&lt;/block&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<p>Js:</p>
+<pre><code>// pages/allshudong_page/allshudong.js
+
+Page({
+
+/\*\*
+
+\* 页面的初始数据
+
+\*/
+
+data: {
+
+array:[]
+
+},
+
+onLoad(options) {
+
+var that= this
+
+wx.request({
+
+//url: 'http://127.0.0.1:5000/v1/book/',
+
+url: 'http://192.168.137.1:5000/v1/book/',
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+array: (res.data).reverse()
+
+})
+
+}
+
+})
+
+},
+
+onPullDownRefresh() {
+
+this.onLoad()
+
+wx.showToast({
+
+title: '刷新成功',
+
+icon: 'success'
+
+})
+
+wx.stopPullDownRefresh()
+
+},
+
+})
+</code></pre>
+<h2 id="帖子详情及评论">帖子详情及评论：</h2>
+<figure data-type="image" tabindex="14"><img src="https://lingdajin.github.io/post-images/1699965608896.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/demo02/text/text.wxml--&gt;
+
+&lt;view class='tiezi'&gt;
+
+&lt;view class='demo-box'&gt;
+
+&lt;view class=&quot;Theauthor&quot;&gt;{{author}}&lt;/view&gt;
+
+&lt;view style=&quot;display: flex;&quot;&gt;
+
+&lt;view class=&quot;Thetitle&quot;&gt;{{title}}&lt;/view&gt;
+
+&lt;mp-icon style=&quot;margin-right: 20rpx;&quot; type=&quot;field&quot; icon=&quot;delete&quot; color=&quot;red&quot; size=&quot;{{20}}&quot; bindtap= 'delete'&gt;&lt;/mp-icon&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;view class=&quot;Thesummary&quot;&gt;{{summary}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 分割线 --&gt;
+
+&lt;view class=&quot;view_fengexian&quot;&gt;
+
+&lt;view &gt;&lt;/view&gt;
+
+&lt;text class=&quot;text_fengexian&quot;&gt;评论&lt;/text&gt;
+
+&lt;view &gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 评论区 --&gt;
+
+&lt;view class=&quot;comment-list&quot;&gt;
+
+&lt;block wx:for=&quot;{{array}}&quot; wx:key=&quot;index&quot;&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;view class=&quot;comment-item&quot;&gt;
+
+&lt;view class=&quot;comment-author&quot;&gt;{{item.author}}&lt;/view&gt;
+
+&lt;view style=&quot;display: flex;&quot;&gt;
+
+&lt;view class=&quot;comment-content&quot;&gt;{{item.comment}}&lt;/view&gt;
+
+&lt;mp-icon style=&quot;margin-right: 20rpx;&quot; type=&quot;outline&quot; icon=&quot;delete&quot; color=&quot;black&quot; size=&quot;{{20}}&quot; bindtap= 'deleteComment' data-index=&quot;{{item.id}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/block&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 底部发送评论栏 --&gt;
+
+&lt;view class=&quot;col&quot;&gt;
+
+&lt;view class=&quot;search&quot;&gt;&lt;input confirm-type=&quot;done&quot; placeholder=&quot;发一条友善的评论~&quot; placeholder-class=&quot;input&quot; class=&quot;input&quot; bindinput=&quot;bindText&quot;&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;view class=&quot;sendButton&quot; bindtap=&quot;send&quot;&gt;发送&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<p>Js:</p>
+<pre><code>// pages/oneshudong_page/oneshudong.js
+
+Page({
+
+data: {
+
+id:null,
+
+author:null,
+
+title:null,
+
+summary:null,
+
+array:null,
+
+text:null,
+
+\_id:null
+
+},
+
+onLoad(options) {
+
+var that= this
+
+this.setData({
+
+id:options.id
+
+})
+
+//console.log(this.data.id)
+
+// 获取帖子详细内容
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+title:res.data.title,
+
+author:res.data.author,
+
+summary:res.data.summary
+
+})
+
+}
+
+})
+
+// 获取评论
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data.id,
+
+method: 'GET',
+
+data: {
+
+//无
+
+},
+
+success (res) {
+
+console.log(res)
+
+that.setData({
+
+array:res.data
+
+})
+
+}
+
+})
+
+},
+
+// 下拉刷新
+
+onPullDownRefresh() {
+
+var that = this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+title:res.data.title,
+
+author:res.data.author,
+
+summary:res.data.summary
+
+})
+
+}
+
+})
+
+// 获取评论
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data.id,
+
+method: 'GET',
+
+data: {
+
+//无
+
+},
+
+success (res) {
+
+console.log(res)
+
+that.setData({
+
+array:res.data
+
+})
+
+}
+
+})
+
+wx.showToast({
+
+title: '刷新成功',
+
+icon: 'success'
+
+})
+
+wx.stopPullDownRefresh()
+
+},
+
+// 删除帖子
+
+delete(e){
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code == 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/all/'+that.data.id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+},
+
+// 删除评论
+
+deleteComment(e){
+
+var that = this
+
+console.log(e.target.dataset.index)
+
+this.setData({
+
+\_id : e.target.dataset.index
+
+})
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data._id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+onPullDownRefresh() //删除评论后自动刷新
+
+},
+
+// 实时获取发送内容
+
+bindText(e){
+
+this.setData({
+
+text:e.detail.value
+
+})
+
+},
+
+// 发送评论
+
+send(e){
+
+var that = this
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/',
+
+method: 'POST',
+
+data:{
+
+author:wx.getStorageSync('username'),
+
+comment:that.data.text,
+
+image:'none',
+
+this_id:that.data.id
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res){
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 12){
+
+wx.showToast({
+
+title: '发表评论成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="发布界面">发布界面：</h2>
+<figure data-type="image" tabindex="15"><img src="https://lingdajin.github.io/post-images/1699964491581.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/commit/commit.wxml--&gt;
+
+&lt;text class=&quot;text&quot;&gt;标题&lt;/text&gt;
+
+&lt;input placeholder=&quot;输入标题&quot; class='down_line' placeholder-style=&quot;color:#888888; font-size:38rpx;&quot; bindinput=&quot;bindText&quot;&gt;&lt;/input&gt;
+
+&lt;view class=&quot;textarea&quot;&gt;
+
+&lt;textarea placeholder=&quot;发一条帖子吧~&quot; placeholder-style=&quot;color:#888888; font-size:38rpx;&quot; class='textinput' bindinput=&quot;bindTextAreaBlur&quot;&gt;&lt;/textarea&gt;
+
+&lt;/view&gt;
+
+&lt;view id=&quot;btn&quot; class=&quot;click&quot; bindtap='send'&gt;发送&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/post_page/post.js
+
+Page({
+
+data: {
+
+title:null,
+
+text:null,
+
+author:null
+
+},
+
+onLoad(options) {
+
+},
+
+bindText(e){
+
+//console.log(e.detail.value)
+
+this.setData({
+
+title:e.detail.value
+
+})
+
+},
+
+bindTextAreaBlur(e){
+
+//console.log(e.detail.value)
+
+this.setData({
+
+text:e.detail.value
+
+})
+
+},
+
+send(e){
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/',
+
+url: 'http://192.168.137.1:5000/v1/book/',
+
+method:'POST',
+
+data:{
+
+title:that.data.title,
+
+summary:that.data.text,
+
+author:wx.getStorageSync('username'),
+
+image:'none',
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 10000){
+
+wx.showToast({
+
+title: '您还没有登陆',
+
+icon: 'error'
+
+})
+
+}else if(obj.code== 10030){
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}else if(obj.code== 10240){
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+else{
+
+wx.showToast({
+
+title: '发送成功',
+
+icon: 'success'
+
+})
+
+}
+
+}
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="我的界面">我的界面：</h2>
+<figure data-type="image" tabindex="16"><img src="https://lingdajin.github.io/post-images/1699964813167.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/mine/mine.wxml--&gt;
+
+&lt;!-- &lt;view class=&quot;page&quot;&gt;
+
+&lt;image class=&quot;image&quot; src=&quot;/images/myImage.png&quot;&gt;&lt;/image&gt;
+
+&lt;/view&gt; --&gt;
+
+&lt;view class='hello'&gt;
+
+&lt;text&gt;{{welcome}}~&lt;/text&gt;
+
+&lt;/view&gt;
+
+&lt;view style=&quot;margin-top: 100px;&quot;&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;login&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;me&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;用户登录&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;quit&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;close&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;用户登出&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;esp&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;link&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;ESP定时器&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/myinfo_page/myinfo.js
+
+Page({
+
+data: {
+
+welcome:null,
+
+},
+
+onLoad(options) {
+
+var that= this
+
+if(wx.getStorageSync('username')== 'null'){
+
+that.setData({
+
+welcome: '您还没有登陆哦'
+
+})
+
+}else{
+
+that.setData({
+
+welcome: '欢迎你'+wx.getStorageSync('username')
+
+})
+
+}
+
+},
+
+login(e){
+
+if(wx.getStorageSync('username')== 'null'){
+
+wx.reLaunch({
+
+url: '/pages/login_page/login',
+
+})
+
+}else{
+
+console.log(wx.getStorageSync('username'))
+
+wx.showToast({
+
+title: '您已经登录！',
+
+icon: 'error'
+
+})
+
+}
+
+},
+
+quit(e){
+
+wx.setStorageSync('username','null')
+
+wx.removeStorageSync('token')
+
+this.setData({
+
+welcome: '您还没有登陆哦'
+
+})
+
+wx.showToast({
+
+title: '退出成功！',
+
+icon: 'success'
+
+})
+
+},
+
+esp(e){
+
+wx.navigateTo({
+
+url: '/pages/clock/index',
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="esp定时器界面">ESP定时器界面：</h2>
+<figure data-type="image" tabindex="17"><img src="https://lingdajin.github.io/post-images/1699964878531.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--index.wxml--&gt;
+
+&lt;view style=&quot;margin-top:20px;&quot;&gt;
+
+&lt;view style=&quot;text-align:center;&quot;&gt;
+
+&lt;p style=&quot;font-size:30px;&quot;&gt;ESP远程提醒设置&lt;/p&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt; &lt;p&gt;设备状态：&lt;/p&gt;
+
+&lt;text style=&quot;color: {{statusColor}};&quot;&gt;{{device_status}}&lt;/text&gt;
+
+&lt;/view&gt;
+
+&lt;view style=&quot;margin-top:0px;&quot;&gt; &lt;p&gt;ESP目前提醒时间：{{powerstatus}}&lt;/p&gt; &lt;/view&gt;
+
+&lt;view style=&quot;font-size: 50rpx;margin-top: 50rpx;&quot;&gt;
+
+点击下方以更改提醒时间
+
+&lt;/view&gt;
+
+&lt;picker mode=&quot;time&quot; value=&quot;{{time}}&quot; start=&quot;00:01&quot; end=&quot;23:59&quot; bindchange=&quot;bindTimeChange&quot;&gt;
+
+&lt;view class=&quot;flex&quot;&gt;
+
+&lt;view class=&quot;choose&quot;&gt;{{time1}}&lt;/view&gt;
+
+&lt;view class=&quot;maohao&quot;&gt;:&lt;/view&gt;
+
+&lt;view class=&quot;choose&quot;&gt;{{time2}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/picker&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt; &lt;button bindtap=&quot;openclick&quot; &gt;发送&lt;/button&gt; &lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+\&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>const app = getApp()
+
+Page({
+
+data: {
+
+uid: 'ea565388aea14b9088ebd3801e5488c0',
+
+topic: &quot;timer&quot;,
+
+device_status: &quot;离线&quot;, //默认离线
+
+powerstatus:&quot;已关闭&quot;, //默认关闭
+
+time:&quot;无&quot;,
+
+time1:&quot;00&quot;,
+
+time2:&quot;00&quot;,
+
+statusColor:&quot;red&quot;
+
+},
+
+onLoad: function () {
+
+var that = this
+
+//请求设备状态
+
+//设备断开不会立即显示离线，由于网络情况的复杂性，离线1分钟左右才判断真离线
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/status/', //状态api接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+if(res.data.status === &quot;online&quot;){
+
+that.setData({
+
+device_status:&quot;在线&quot;,
+
+statusColor: &quot;green&quot;
+
+})
+
+}else{
+
+that.setData({
+
+device_status:&quot;离线&quot;,
+
+statusColor: &quot;red&quot;
+
+})
+
+}
+
+console.log(that.data.device_status)
+
+}
+
+})
+
+//请求询问设备开关/状态
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+powerstatus:res.data.msg
+
+})
+
+console.log(that.data.powerstatus)
+
+}
+
+})
+
+//设置定时器，每五秒请求一下设备状态
+
+setInterval(function () {
+
+console.log(&quot;定时请求设备状态,默认五秒&quot;);
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/status/', //get 设备状态接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+if(res.data.status === &quot;online&quot;){
+
+that.setData({
+
+device_status:&quot;在线&quot;,
+
+statusColor: &quot;green&quot;
+
+})
+
+}else{
+
+that.setData({
+
+device_status:&quot;离线&quot;,
+
+statusColor: &quot;red&quot;
+
+})
+
+}
+
+console.log(that.data.device_status)
+
+}
+
+})
+
+//请求询问设备开关/状态
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+powerstatus:res.data.msg
+
+})
+
+console.log(that.data.powerstatus)
+
+}
+
+})
+
+}, 5000)
+
+},
+
+openclick: function() {
+
+var that = this
+
+that.setData({
+
+powerstatus:&quot;已打开&quot;
+
+})
+
+//控制接口
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+
+method:&quot;POST&quot;,
+
+data: { //请求字段，详见巴法云接入文档，http接口
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+msg:that.data.time //发送消息为on的消息
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+wx.showToast({
+
+title:'发送成功',
+
+icon:'success',
+
+duration:1000
+
+})
+
+}
+
+})
+
+},
+
+bindTimeChange: function(e) {
+
+console.log('picker发送选择改变，携带值为', e.detail.value)
+
+this.setData({
+
+time: e.detail.value,
+
+time1:e.detail.value.slice(0, 2),
+
+time2:e.detail.value.slice(3, 5),
+
+})
+
+},
+
+})
+</code></pre>
+<ul>
+<li>
+<p><strong>硬件(ESP8266-NodeMCU 1.0)</strong></p>
+<figure data-type="image" tabindex="18"><img src="https://lingdajin.github.io/post-images/1699964992446.jpeg" alt="" loading="lazy"></figure>
+</li>
+</ul>
+<pre><code>#include &lt;Arduino.h&gt;
+
+#include &lt;U8g2lib.h&gt;
+
+#include &lt;Wire.h&gt;
+
+#include &lt;NTPClient.h&gt;
+
+#include &lt;ESP8266WiFi.h&gt;
+
+#include &lt;WiFiUdp.h&gt;
+
+WiFiUDP ntpUDP;
+
+一些包含的头文件
+
+//巴法云服务器地址默认即可
+
+#define TCP_SERVER_ADDR &quot;bemfa.com&quot;
+
+//服务器端口，tcp创客云端口8344
+
+#define TCP_SERVER_PORT &quot;8344&quot;
+
+#define DEFAULT_STASSID &quot;LAO_TIAN&quot; //WIFI名称，区分大小写，不要写错
+
+#define DEFAULT_STAPSW &quot;12345678&quot; //WIFI密码
+
+String UID = &quot;ea565388aea14b9088ebd3801e5488c0&quot;; //用户私钥，可在控制台获取,修改为自己的UID
+
+String TOPIC = &quot;timer&quot;; //主题名字，可在控制台新建
+
+连接巴法云
+
+//最大字节数
+
+#define MAX_PACKETSIZE 512
+
+//设置心跳值30s
+
+#define KEEPALIVEATIME 60*1000
+
+//tcp客户端相关初始化，默认即可
+
+WiFiClient TCPclient;
+
+String TcpClient_Buff = &quot;&quot;;
+
+unsigned int TcpClient_BuffIndex = 0;
+
+unsigned long TcpClient_preTick = 0;
+
+unsigned long preHeartTick = 0;//心跳
+
+unsigned long preTCPStartTick = 0;//连接
+
+bool preTCPConnected = false;
+
+// 设置屏幕
+
+U8G2_SSD1306_128X64_NONAME_1_SW_I2C u8g2(U8G2_R0, 14 , 5, U8X8_PIN_NONE); // All Boards without Reset of the Display
+
+NTPClient timeClient(ntpUDP, &quot;cn.ntp.org.cn&quot;, 8 * 60 * 60, 60000);
+
+String setTime=&quot;10:00&quot;;
+
+int button = 0;
+
+int bee = 13;
+
+int value = 1;
+
+int judge;
+
+//相关函数初始化
+
+//连接WIFI
+
+void doWiFiTick();
+
+void startSTA();
+
+//TCP初始化连接
+
+void doTCPClientTick();
+
+void startTCPClient();
+
+void sendtoTCPServer(String p);
+
+void set_time(String get);
+
+void setup(void) {
+
+pinMode(bee, OUTPUT);
+
+pinMode(button, INPUT_PULLUP);
+
+Serial.begin(115200);
+
+Serial.println(&quot;Beginning...&quot;);
+
+timeClient.begin();
+
+Serial.println ( &quot;网络时钟初始化完成&quot; );
+
+u8g2.begin();
+
+}
+
+void loop(void) {
+
+// wifi
+
+doWiFiTick();
+
+// 网络获取时间
+
+timeClient.update();
+
+String nowtime = timeClient.getFormattedTime();
+
+// Serial.println(nowtime);
+
+String hours = nowtime.substring(0, 2);
+
+String minutes = nowtime.substring(3, 5);
+
+String seconds = nowtime.substring(6, 8);
+
+通过网络获取时间
+
+const char *hour = hours.c_str();
+
+const char *minute = minutes.c_str();
+
+const char *second = seconds.c_str();
+
+// 在屏幕显示时间
+
+u8g2.firstPage();
+
+do {
+
+u8g2.setFont(u8g2_font_unifont_t_chinese2);
+
+u8g2.drawStr(30,15,hour);
+
+u8g2.drawStr(50,15,&quot;:&quot;);
+
+u8g2.drawStr(60,15,minute);
+
+u8g2.drawStr(80,15,&quot;:&quot;);
+
+u8g2.drawStr(90,15,second);
+
+u8g2.drawStr(10,30,setTime.substring(0,2).c_str());
+
+u8g2.drawStr(30,30,&quot;:&quot;);
+
+u8g2.drawStr(40,30,setTime.substring(3,5).c_str());
+
+} while ( u8g2.nextPage() );
+
+OLED显示屏显示时间、已设置的闹铃定时等
+
+// 控制到达设置时间时启动蜂鸣
+
+if(value == 1){ //若没有按过按钮
+
+if(strcmp(hours.c_str(),setTime.substring(0,2).c_str()) == strcmp(minutes.c_str(),setTime.substring(3,5).c_str())){
+
+digitalWrite(bee,HIGH);
+
+Serial.println(&quot;Bee On&quot;);
+
+value=digitalRead(button);
+
+if(value == 0){
+
+digitalWrite(bee,LOW);
+
+Serial.println(&quot;Bee Stop&quot;);
+
+judge = minutes.toInt();
+
+}
+
+}
+
+}
+
+if(value == 0){ //按下按钮后判定一分钟内不再响铃
+
+if(minutes.toInt() == judge + 1){
+
+value = 1;
+
+}
+
+}
+
+// 连接tcp
+
+doTCPClientTick();
+
+}
+
+/*
+
+*发送数据到TCP服务器
+
+*/
+
+void sendtoTCPServer(String p){
+
+if (!TCPclient.connected())
+
+{
+
+Serial.println(&quot;Client is not readly&quot;);
+
+return;
+
+}
+
+TCPclient.print(p);
+
+Serial.println(&quot;[Send to TCPServer]:String&quot;);
+
+Serial.println(p);
+
+preHeartTick = millis();//心跳计时开始，需要每隔60秒发送一次数据
+
+}
+
+/*
+
+*初始化和服务器建立连接
+
+*/
+
+void startTCPClient(){
+
+if(TCPclient.connect(TCP_SERVER_ADDR, atoi(TCP_SERVER_PORT))){
+
+Serial.print(&quot;nConnected to server:&quot;);
+
+Serial.printf(&quot;%s:%d\r\n&quot;,TCP_SERVER_ADDR,atoi(TCP_SERVER_PORT));
+
+String tcpTemp=&quot;&quot;; //初始化字符串
+
+tcpTemp = &quot;cmd=1&amp;uid=&quot;+UID+&quot;&amp;topic=&quot;+TOPIC+&quot;\r\n&quot;; //构建订阅指令
+
+sendtoTCPServer(tcpTemp); //发送订阅指令
+
+tcpTemp=&quot;&quot;;//清空
+
+preTCPConnected = true;
+
+TCPclient.setNoDelay(true);
+
+}
+
+else{
+
+Serial.print(&quot;Failed connected to server:&quot;);
+
+Serial.println(TCP_SERVER_ADDR);
+
+TCPclient.stop();
+
+preTCPConnected = false;
+
+}
+
+preTCPStartTick = millis();
+
+}
+
+/*
+
+*检查数据，发送心跳
+
+*/
+
+void doTCPClientTick(){
+
+//检查是否断开，断开后重连
+
+if(WiFi.status() != WL_CONNECTED) return;
+
+if (!TCPclient.connected()) {//断开重连
+
+if(preTCPConnected == true){
+
+preTCPConnected = false;
+
+preTCPStartTick = millis();
+
+Serial.println();
+
+Serial.println(&quot;TCP Client disconnected.&quot;);
+
+TCPclient.stop();
+
+}
+
+else if(millis() - preTCPStartTick &gt; 1*1000)//重新连接
+
+startTCPClient();
+
+}
+
+else
+
+{
+
+if (TCPclient.available()) {//收数据
+
+char c =TCPclient.read();
+
+TcpClient_Buff +=c;
+
+TcpClient_BuffIndex++;
+
+TcpClient_preTick = millis();
+
+if(TcpClient_BuffIndex&gt;=MAX_PACKETSIZE - 1){
+
+TcpClient_BuffIndex = MAX_PACKETSIZE-2;
+
+TcpClient_preTick = TcpClient_preTick - 200;
+
+}
+
+}
+
+if(millis() - preHeartTick &gt;= KEEPALIVEATIME){//保持心跳
+
+preHeartTick = millis();
+
+Serial.println(&quot;--Keep alive:&quot;);
+
+sendtoTCPServer(&quot;cmd=0&amp;msg=keeprn&quot;);
+
+}
+
+}
+
+if((TcpClient_Buff.length() &gt;= 1) &amp;&amp; (millis() - TcpClient_preTick&gt;=200))
+
+{//data ready
+
+TCPclient.flush();
+
+Serial.print(&quot;Rev string: &quot;);
+
+TcpClient_Buff.trim(); //去掉首位空格
+
+Serial.println(TcpClient_Buff); //打印接收到的消息
+
+String getTopic = &quot;&quot;;
+
+String getMsg = &quot;&quot;;
+
+if(TcpClient_Buff.length() &gt; 15){
+
+//注意TcpClient_Buff只是个字符串，在上面开头做了初始化StringTcpClient_Buff = &quot;&quot;;
+
+//此时会收到推送的指令，指令大概为 cmd=2&amp;uid=xxx&amp;topic=light002&amp;msg=off
+
+int topicIndex = TcpClient_Buff.indexOf(&quot;&amp;topic=&quot;)+7;
+
+//c语言字符串查找，查找&amp;topic=位置，并移动7位，不懂的可百度c语言字符串查找
+
+int msgIndex = TcpClient_Buff.indexOf(&quot;&amp;msg=&quot;);
+
+//c语言字符串查找，查找&amp;msg=位置
+
+getTopic = TcpClient_Buff.substring(topicIndex,msgIndex);
+
+//c语言字符串截取，截取到topic,不懂的可百度c语言字符串截取
+
+getMsg = TcpClient_Buff.substring(msgIndex+5);
+
+//c语言字符串截取，截取到消息
+
+Serial.print(&quot;topic:------&quot;);
+
+Serial.println(getTopic);
+
+//打印截取到的主题值
+
+Serial.print(&quot;msg:--------&quot;);
+
+Serial.println(getMsg);
+
+//打印截取到的消息值
+
+// set_time(getMsg);
+
+//将获取到的时间转化为时、分，并存储起来
+
+setTime = getMsg;
+
+}
+
+TcpClient_Buff=&quot;&quot;;
+
+TcpClient_BuffIndex = 0;
+
+}
+
+}
+
+void startSTA(){
+
+WiFi.disconnect();
+
+WiFi.mode(WIFI_STA);
+
+WiFi.begin(DEFAULT_STASSID, DEFAULT_STAPSW);
+
+}
+
+/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
+
+WIFI
+
+\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/
+
+/*
+
+WiFiTick
+
+检查是否需要初始化WiFi
+
+检查WiFi是否连接上，若连接成功启动TCP Client
+
+控制指示灯
+
+*/
+
+void doWiFiTick(){
+
+static bool startSTAFlag = false;
+
+static bool taskStarted = false;
+
+static uint32_t lastWiFiCheckTick = 0;
+
+if (!startSTAFlag) {
+
+startSTAFlag = true;
+
+startSTA();
+
+Serial.printf(&quot;Heap size:%d\r\n&quot;, ESP.getFreeHeap());
+
+}
+
+//未连接1s重连
+
+if ( WiFi.status() != WL_CONNECTED ) {
+
+if (millis() - lastWiFiCheckTick &gt; 1000) {
+
+lastWiFiCheckTick = millis();
+
+}
+
+}
+
+//连接成功建立
+
+else {
+
+if (taskStarted == false) {
+
+taskStarted = true;
+
+Serial.print(&quot;\r\nGet IP Address: &quot;);
+
+Serial.println(WiFi.localIP());
+
+startTCPClient();
+
+}
+
+}
+
+}
+
+// 将获取到的时间转化为时、分，并存储起来
+
+void set_time(String get){
+
+ESP.wdtFeed();
+
+传说中的“喂狗”函数，防止ESP8266复位
+
+}
+</code></pre>
+<p><strong>团队介绍：</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>成员</strong></th>
+<th><strong>分工</strong></th>
+<th><strong>贡献率</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>唐奥</strong></td>
+<td>创意策划、框架搭建 负责部分硬件搭建</td>
+<td>55%</td>
+</tr>
+<tr>
+<td><strong>田晁旭</strong></td>
+<td>功能完善与调试 负责部分硬件搭建</td>
+<td>45%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>团队故事：</strong></p>
+<p>这个想法诞生于去年年末疫情解控放开，身边大部分人抗体检测呈阳性，并且还有许多学长学姐处于考研复习的关键期，转阳后心理负担重，产生的巨大的心理压力无处发泄；同时很多人属于第一次“阳”，对于如何复健毫无头绪。综合以上需求，我们构思了一个集提供新冠医疗建议、论坛形式交流倾诉、健康起居打卡检测于一体的小程序“阳康宝典”。</p>
+<p>我们最初的重点在“提供新冠医疗建议”上，但随着国家科学有效的开放管控，全国疫情情况已经趋于平稳，维持在一个低峰状态，遂经过成员讨论，将小程序的核心功能定位在“用户论坛”和“健康起居打卡”功能上。</p>
+<p>“用户论坛”的灵感来源于BBS具有的发帖、回帖等相关功能，用户在小程序注册后即可拥有发帖、回帖等权限，不过这只是一个雏形，多样化方面（比如有色字、加粗、下划线等基本功能，评论图片，论坛背景等美化工作仍需加强完善。</p>
+<p>“健康起居打卡”以饮水习惯检测为例，通过ESP8266 Module WiFi模块实现器件（蜂鸣器、OLED显示屏等）与小程序的沟通互动，ESP8266模块连接互联网后自动同步当前时间，并在OLED显示屏上实时显示，用户端通过巴法云发送定时指令，ESP8266接受到信息后从中提取时间并启动定时提醒，提醒到点喝水。</p>
+<p>刚开始实现这个功能的时候，采用的是统一发放的ESP8266-S01，发现并不能很好地实现预想功能，ESP8266-S01不能带动蜂鸣器报警，也不能驱动OLED显示时间，基于此我们迅速购买了ESP8266-NodeMCU，顺利解决了问题，继续推进整体的构建。</p>
+<p>此后无数个日日夜夜里，我们在努力攻克不断产生的新问题，终于让整个构想小有雏形。</p>
+<p>不知道经过了多少天，我们设想的核心功能——定时提醒打卡功能终于完成了，尽管功能有些简陋，但聊胜于无哈哈哈。</p>
+<p>导论是一个绝佳的机会，让我们去尝试，去努力，去探求解决方法。我们看见了自身存在的不足，并努力补齐短板。在实现的过程中，不仅学到了有用的拓展知识，锻炼了自己debug的能力，而且培养了我们团队协作的精神，培养了我们坚持到底锲而不舍的精神。</p>
+<p><strong>B站视频</strong></p>
+<p><a href="https://www.bilibili.com/video/BV1Jc411u71e/">https://www.bilibili.com/video/BV1Jc411u71e/</a></p>
+<p><strong>GitHub代码</strong></p>
+<p><a href="https://gitee.com/ling_da_jin/Yangkang_book">https://gitee.com/ling_da_jin/Yangkang_book</a></p>
+<p><strong>参考资料：</strong></p>
+<p><a href="https://mp.weixin.qq.com/s/CVf2e-k4pEdn2QlYN0o_ww">大数据显示：疫情三年，青少年焦虑、抑郁上升趋势惊人，我们能做什么？</a></p>
+<p><a href="http://www.nhc.gov.cn/xcs/fkdt/202212/560d0401fe4c4f4180d2d61c7c44abf3.shtml">新冠病毒感染者居家指引（第一版）</a></p>
+<p><a href="https://blog.csdn.net/qq_44366571/article/details/107310134">【物联网】基础篇 ESP8266-NodeMCU学习一</a></p>
+<p><a href="https://blog.csdn.net/bemfa/article/details/107019002">【开源】微信小程序控制ESP8266</a></p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[PCB驱动板]]></title>
+        <id>https://lingdajin.github.io/post/pcb-qu-dong-ban/</id>
+        <link href="https://lingdajin.github.io/post/pcb-qu-dong-ban/">
+        </link>
+        <updated>2023-11-12T14:18:06.000Z</updated>
+        <content type="html"><![CDATA[<p>最近加入了智能车社团，学习了PCB打板，准备参加智能车竞赛，这是大作业驱动板的展示文章。</p>
+<h2 id="介绍">介绍</h2>
+<ul>
+<li>本次设计的驱动电路分为5个模块，驱动模块，降压模块，隔离模块，逻辑门模块，电源及开关模块。</li>
+</ul>
+<p>驱动电路原理主要为H桥电路，使用控制芯片控制H桥达到驱动电机目的。</p>
+<ul>
+<li>使用<strong>HIP4082</strong>全桥电路</li>
+<li>使用<strong>TPS5430</strong>降压芯片</li>
+<li>使用光耦芯片进行信号隔离</li>
+<li>逻辑门电路实现单路<strong>PWM</strong>控制速度，单路DIR信号控制正反转</li>
+<li>大电流已铺铜</li>
+</ul>
+<p>实际上电测试，使用<strong>ESP8266</strong>输出<strong>PWM</strong>波（使用任何可以输出<strong>PWM</strong>波芯片的单片机都可以）占空比从10%-90%变化，使用12V电源供电，电机端可以正常输出电压，接入电机后可以正常驱动，正反转功能正常。</p>
+<h2 id="原理图">原理图</h2>
+<figure data-type="image" tabindex="1"><img src="https://lingdajin.github.io/post-images/1699799108352.png" alt="" loading="lazy"></figure>
+<h2 id="layout">LAYOUT</h2>
+<p><img src="https://lingdajin.github.io/post-images/1699799157260.png" alt="" loading="lazy"><br>
+<img src="https://lingdajin.github.io/post-images/1699799173459.png" alt="" loading="lazy"></p>
+<h2 id="3d预览图">3D预览图</h2>
+<figure data-type="image" tabindex="2"><img src="https://lingdajin.github.io/post-images/1699799251102.png" alt="" loading="lazy"></figure>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[web]]></title>
+        <id>https://lingdajin.github.io/post/web/</id>
+        <link href="https://lingdajin.github.io/post/web/">
+        </link>
+        <updated>2023-03-18T02:27:16.000Z</updated>
+        <content type="html"><![CDATA[<p>hi,this is my website</p>
+]]></content>
+    </entry>
+</feed>

@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>阳康宝典-基于微信小程序的论坛 | Ling_da_jin的博客</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://lingdajin.github.io/favicon.ico?v=1708260533500">
+<link rel="stylesheet" href="https://lingdajin.github.io/styles/main.css">
+
+
+  
+    <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css" />
+  
+
+  
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="
+项目名称: 阳康宝典
+简介：
+2022年12月26日，深夜二十三点零一分，国家卫健委发布2022年第7号公告：将新型冠状病毒肺炎更名为新型冠状病毒感染。与此同时，国务院联防联控机制发布对新型冠状病毒感染实施“乙类乙管”总体方案，宣告全民抗..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://lingdajin.github.io">
+        <img src="https://lingdajin.github.io/images/avatar.png?v=1708260533500" class="site-logo">
+        <h1 class="site-title">Ling_da_jin的博客</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+          <a class="social-link" href="https://github.com/Lingdajin" target="_blank">
+            <i class="fab fa-github"></i>
+          </a>
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a> | <a class="rss" href="https://lingdajin.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">阳康宝典-基于微信小程序的论坛</h2>
+            <div class="post-date">2023-11-14</div>
+            
+              <div class="feature-container" style="background-image: url('https://lingdajin.github.io/post-images/markdown.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <figure data-type="image" tabindex="1"><img src="https://lingdajin.github.io/post-images/1699963250064.png" alt="" loading="lazy"></figure>
+<p><strong>项目名称:</strong> 阳康宝典</p>
+<p><strong>简介：</strong></p>
+<p>2022年12月26日，深夜二十三点零一分，国家卫健委发布2022年第7号公告：将新型冠状病毒肺炎更名为新型冠状病毒感染。与此同时，国务院联防联控机制发布对新型冠状病毒感染实施“乙类乙管”总体方案，宣告全民抗疫的时代画上了终止符。</p>
+<p>随着国家的逐步放开，人口流动量也逐渐增大，许多人因为个人防护不到位而不幸中招，这也给其他人带来了一丝焦虑与恐慌。</p>
+<p>没变“羊”却不知如何科学保护自己？</p>
+<p>不幸变“羊”后不知如何调理，或是因此产生的负能量不知向谁诉说？</p>
+<p>少年，特此为你准备了一本《阳康宝典》，助力未“羊”人时时刻刻远离病毒侵扰，助力“羊”们早日康复！</p>
+<p><strong>创意过程（思维导图）：</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://lingdajin.github.io/post-images/1699963286624.jpeg" alt="" loading="lazy"></figure>
+<p>四象限法：</p>
+<figure data-type="image" tabindex="3"><img src="https://lingdajin.github.io/post-images/1699963304258.png" alt="" loading="lazy"></figure>
+<p>商业模式画布：</p>
+<ul>
+<li>客户细分：未“羊”人、“羊”、“阳康”患者</li>
+<li>价值主张：为用户提供防疫科普、心理疏导服务</li>
+<li>渠道通路：用户自发推广</li>
+<li>客户关系：相互依赖型</li>
+<li>收入来源：公益性质，用户可以自发支持</li>
+<li>核心资源：用户使用量、医疗资讯的准确度</li>
+<li>关键业务：小程序为弱运营，只需要对功能进行及时维护，及时debug，吸取用户意见开发新功能</li>
+<li>重要伙伴：心理咨询机构、专业医疗机构</li>
+<li>成本结构：主要集中于维护费用</li>
+</ul>
+<p><strong>用户分析：</strong></p>
+<p>目标用户：未“羊”人、“羊”、“阳康”患者</p>
+<p>未“羊”人：身边亲友大部分已经感染，自己会因此紧张焦虑，担心自己也会中招，甚至因此出现”幻阳症”。</p>
+<p>“羊”：康复过程十分难受，易产生许多负能量，如不及时排遣就不利于自身心理健康。</p>
+<p>“阳康患者”：作为过来人，可以为身边的小“羊”人提供暖心的安慰以及战胜病魔的经验之谈。</p>
+<p>用户画像：</p>
+<figure data-type="image" tabindex="4"><img src="https://lingdajin.github.io/post-images/1699963372818.png" alt="" loading="lazy"></figure>
+<p>所听：在与父母及同学交流时，他们经常担心自己也中招，比如身体出现不适症状后就担心是感染的前兆。</p>
+<p>所见：</p>
+<ul>
+<li>观看新闻得知现在处于疫情高峰期，心中不由得产生恐慌。</li>
+<li>微博超话中有人分享自己的阳康经历，也目睹了评论区中大家的相互安慰抱团去年。</li>
+<li>同时被部分超话中有人带病坚持学习的精神感动，自己也想加入其中与大家共勉，一起战胜奥密克戎，一起进步。</li>
+</ul>
+<p>所想&amp;所感：</p>
+<ul>
+<li>自己身体状况不好带来的情绪低落</li>
+<li>食欲不振</li>
+<li>学习效率低下</li>
+<li>焦虑感、恐慌感</li>
+</ul>
+<p>所说&amp;所做：</p>
+<ul>
+<li>尽己所能去安慰身边亲友</li>
+</ul>
+<p><strong>痛点&amp;需求：</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>痛点</strong></th>
+<th><strong>需求</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>对如何进行自我防护、感染后如何自我调理毫无头绪</strong></td>
+<td><strong>急需一款程序来为自己提供贴身的健康指导</strong></td>
+</tr>
+<tr>
+<td><strong>康复期间有千种愁绪，更与何人说？</strong></td>
+<td><strong>需要一个释放自己负面情绪、接受他人温暖关怀的窗口</strong></td>
+</tr>
+<tr>
+<td><strong>感染期间学习效率低下，自控力不足，可患病时身体不适，情绪不稳定</strong></td>
+<td><strong>需要一位无形的伙伴督促自己每天适量完成任务，并时不时给自己输入鼓励的话语，帮助稳定情绪，渡过难关</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>场景分析（用户的使用路径图）：</strong></p>
+<figure data-type="image" tabindex="5"><img src="https://lingdajin.github.io/post-images/1699963413930.png" alt="" loading="lazy"></figure>
+<p><strong>系统功能拆解：</strong></p>
+<p>分析：</p>
+<table>
+<thead>
+<tr>
+<th><strong>小程序核心功能</strong></th>
+<th><strong>技术模块</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>用户登录/注册</strong></td>
+<td>使用微信小程序提供的userinfo获得用户微信名称头像，并判断在云数据库是否有相应用户：1.无，则在数据库中为其创建一个新的用户，名称与头像默认与微信一致（可后续在小程序中修改）2.有，则调用数据库中该用户信息，实现登录功能。</td>
+</tr>
+<tr>
+<td><strong>论坛</strong></td>
+<td>需用到云开发数据库功能，网上有大量微信小程序版论坛免费模型，可以借鉴使用，大体功能为发帖、浏览、评论、搜索、删除。</td>
+</tr>
+<tr>
+<td><strong>打卡功能</strong></td>
+<td>外接蜂鸣器、开关等硬件，并配备有OLED显示屏实时报时，当到达用户设定时间时，蜂鸣器开始工作，响铃1分钟，在此期间用户按下按钮开关即可停止。从而实现提醒功能（比如提醒用户到达喝水的时间了，此刻畅饮一杯凉开水！）</td>
+</tr>
+<tr>
+<td><strong>个人防护&amp;生活监测</strong></td>
+<td>提前搜集好防护小知识上传至服务器，在该模块用户可以查看防护知识，并可以自己设置按时喝水提醒，每隔多长时间提醒一次喝水，与打卡提醒实现差不多。</td>
+</tr>
+</tbody>
+</table>
+<p>系统功能架构：</p>
+<figure data-type="image" tabindex="6"><img src="https://lingdajin.github.io/post-images/1699963437670.png" alt="" loading="lazy"></figure>
+<p>流程图：</p>
+<figure data-type="image" tabindex="7"><img src="https://lingdajin.github.io/post-images/1699963454172.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://lingdajin.github.io/post-images/1699963460434.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://lingdajin.github.io/post-images/1699963473383.png" alt="" loading="lazy"></figure>
+<p><strong>功能实现</strong></p>
+<ul>
+<li><strong>小程序</strong></li>
+</ul>
+<h2 id="文件结构">文件结构：</h2>
+<figure data-type="image" tabindex="10"><img src="https://lingdajin.github.io/post-images/1699963498545.png" alt="" loading="lazy"></figure>
+<h2 id="登陆界面">登陆界面：</h2>
+<figure data-type="image" tabindex="11"><img src="https://lingdajin.github.io/post-images/1699963509505.png" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/login/login.wxml--&gt;
+
+&lt;view class='top_tip'&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;欢迎您来到阳康宝典&lt;/view&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;一个病友交流论坛&lt;/view&gt;
+
+&lt;form catchsubmit=&quot;formSubmit&quot;&gt;
+
+&lt;view class='login'&gt;
+
+&lt;view class=&quot;user&quot;&gt;用户名
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='username' type='text' placeholder='请输入用户名'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;password&quot;&gt;密码
+
+&lt;view class=&quot;hold2&quot;&gt;&lt;input class=&quot;input&quot; name='password' password placeholder='请输入密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; form-type='submit'&gt;登录&lt;/button&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; bindtap=&quot;youke&quot;&gt;游客登录&lt;/button&gt;
+
+&lt;/form&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;reg&quot; bindtap=&quot;toReg&quot;&gt;没有账号？&lt;/view&gt;`
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/login/login.js
+
+const app = getApp()
+
+Page({
+
+/\*\*
+
+\* 页面的初始数据
+
+\*/
+
+data: {
+
+},
+
+formSubmit(e) {
+
+console.log('form发生了submit事件，携带数据为：', e.detail.value)
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/cms/user/login',
+
+url: 'http://192.168.137.1:5000/cms/user/login',
+
+method: 'POST',
+
+data: {
+
+username: e.detail.value.username,
+
+password: e.detail.value.password
+
+},
+
+header: {
+
+'content-type': 'application/json' // 默认值
+
+},
+
+success:function(res) {
+
+var obj = res.data
+
+console.log(obj)
+
+wx.setStorage({
+
+key:&quot;token&quot;,
+
+data:obj.access_token
+
+})
+
+wx.setStorage({
+
+key:&quot;username&quot;,
+
+data:e.detail.value.username
+
+})
+
+if(obj.code == 10031) {
+
+wx.showToast({
+
+title: '用户名或密码错误',
+
+icon: 'error'
+
+});
+
+}
+
+else if(obj.code == 10030) {
+
+wx.showToast({
+
+title: '用户名或密码不能为空',
+
+icon: 'error'
+
+});
+
+}
+
+else {
+
+wx.showToast({
+
+title: '登录成功',
+
+})
+
+wx.switchTab({
+
+url: '/pages/allshudong_page/allshudong',
+
+})
+
+}
+
+}
+
+})
+
+},
+
+toReg(){
+
+wx.navigateTo({
+
+url: '/pages/register_page/home1',
+
+})
+
+},
+
+youke(){{
+
+wx.switchTab({
+
+url: '/pages/allshudong_page/allshudong',
+
+})
+
+}}
+
+})
+</code></pre>
+<h2 id="注册界面">注册界面：</h2>
+<figure data-type="image" tabindex="12"><img src="https://lingdajin.github.io/post-images/1699964279730.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--index.wxml--&gt;
+
+&lt;view class='top_tip'&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;欢迎您来到阳康宝典&lt;/view&gt;
+
+&lt;view class=&quot;welcome&quot;&gt;但一个账号是必不可少的&lt;/view&gt;
+
+&lt;form catchsubmit=&quot;onSubmit&quot;&gt;
+
+&lt;view class='login'&gt;
+
+&lt;view class=&quot;user&quot;&gt;用户名
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='username' type='text' placeholder='请输入用户名'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;password&quot;&gt;密码
+
+&lt;view class=&quot;hold2&quot;&gt;&lt;input class=&quot;input&quot; name='password' password placeholder='请输入密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;confirm&quot;&gt;请确认
+
+&lt;view class=&quot;hold&quot;&gt;&lt;input class=&quot;input&quot; name='confirm_password' password placeholder='请重复密码'&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;button style=&quot;width:80vw&quot; class=&quot;click&quot; plain=&quot;true&quot; type=&quot;default&quot; form-type='submit'&gt;注册&lt;/button&gt;
+
+&lt;/form&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;reg&quot; bindtap=&quot;toLogin&quot;&gt;已有账号？&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// index.js
+
+// const app = getApp()
+
+const app = getApp()
+
+Page({
+
+data: {
+
+},
+
+onSubmit: function (e) {
+
+console.log(e.detail.value);
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/cms/user/register',
+
+url: 'http://192.168.137.1:5000/cms/user/register',
+
+method: 'POST',
+
+data: {
+
+username: e.detail.value.username,
+
+password: e.detail.value.password,
+
+confirm_password: e.detail.value.confirm_password
+
+},
+
+header: {
+
+'content-type': 'application/json' // 默认值
+
+},
+
+success:function(res) {
+
+var obj = res.data
+
+console.log(obj)
+
+if(obj.code == 10030) {
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+});
+
+}else if(obj.code == 10071) {
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+});
+
+}else {
+
+wx.showToast({
+
+title: '注册成功',
+
+icon: 'success'
+
+})
+
+}
+
+}
+
+})
+
+},
+
+toLogin(e) {
+
+wx.reLaunch({
+
+url:'/pages/login_page/login',
+
+});
+
+}
+
+});
+</code></pre>
+<h2 id="广场界面">广场界面：</h2>
+<figure data-type="image" tabindex="13"><img src="https://lingdajin.github.io/post-images/1699964339203.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!-- pages/allshudong_page/allshudong.wxml--&gt;
+
+&lt;view class='container'&gt;
+
+&lt;view class=&quot;comment-list&quot;&gt;
+
+&lt;block wx:for=&quot;{{array}}&quot;&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;navigator url='/pages/oneshudong_page/oneshudong?id={{item.id}}'&gt;
+
+&lt;view class=&quot;comment-item&quot;&gt;
+
+&lt;view class=&quot;Onetitle&quot;&gt;{{item.title}}&lt;/view&gt;
+
+&lt;view class=&quot;Oneauthor&quot;&gt;{{item.author}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/navigator&gt;
+
+&lt;/block&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<p>Js:</p>
+<pre><code>// pages/allshudong_page/allshudong.js
+
+Page({
+
+/\*\*
+
+\* 页面的初始数据
+
+\*/
+
+data: {
+
+array:[]
+
+},
+
+onLoad(options) {
+
+var that= this
+
+wx.request({
+
+//url: 'http://127.0.0.1:5000/v1/book/',
+
+url: 'http://192.168.137.1:5000/v1/book/',
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+array: (res.data).reverse()
+
+})
+
+}
+
+})
+
+},
+
+onPullDownRefresh() {
+
+this.onLoad()
+
+wx.showToast({
+
+title: '刷新成功',
+
+icon: 'success'
+
+})
+
+wx.stopPullDownRefresh()
+
+},
+
+})
+</code></pre>
+<h2 id="帖子详情及评论">帖子详情及评论：</h2>
+<figure data-type="image" tabindex="14"><img src="https://lingdajin.github.io/post-images/1699965608896.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/demo02/text/text.wxml--&gt;
+
+&lt;view class='tiezi'&gt;
+
+&lt;view class='demo-box'&gt;
+
+&lt;view class=&quot;Theauthor&quot;&gt;{{author}}&lt;/view&gt;
+
+&lt;view style=&quot;display: flex;&quot;&gt;
+
+&lt;view class=&quot;Thetitle&quot;&gt;{{title}}&lt;/view&gt;
+
+&lt;mp-icon style=&quot;margin-right: 20rpx;&quot; type=&quot;field&quot; icon=&quot;delete&quot; color=&quot;red&quot; size=&quot;{{20}}&quot; bindtap= 'delete'&gt;&lt;/mp-icon&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;view class=&quot;Thesummary&quot;&gt;{{summary}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 分割线 --&gt;
+
+&lt;view class=&quot;view_fengexian&quot;&gt;
+
+&lt;view &gt;&lt;/view&gt;
+
+&lt;text class=&quot;text_fengexian&quot;&gt;评论&lt;/text&gt;
+
+&lt;view &gt;&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 评论区 --&gt;
+
+&lt;view class=&quot;comment-list&quot;&gt;
+
+&lt;block wx:for=&quot;{{array}}&quot; wx:key=&quot;index&quot;&gt;
+
+&lt;view class=&quot;line&quot;&gt;&lt;/view&gt;
+
+&lt;view class=&quot;comment-item&quot;&gt;
+
+&lt;view class=&quot;comment-author&quot;&gt;{{item.author}}&lt;/view&gt;
+
+&lt;view style=&quot;display: flex;&quot;&gt;
+
+&lt;view class=&quot;comment-content&quot;&gt;{{item.comment}}&lt;/view&gt;
+
+&lt;mp-icon style=&quot;margin-right: 20rpx;&quot; type=&quot;outline&quot; icon=&quot;delete&quot; color=&quot;black&quot; size=&quot;{{20}}&quot; bindtap= 'deleteComment' data-index=&quot;{{item.id}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/block&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;!-- 底部发送评论栏 --&gt;
+
+&lt;view class=&quot;col&quot;&gt;
+
+&lt;view class=&quot;search&quot;&gt;&lt;input confirm-type=&quot;done&quot; placeholder=&quot;发一条友善的评论~&quot; placeholder-class=&quot;input&quot; class=&quot;input&quot; bindinput=&quot;bindText&quot;&gt;&lt;/input&gt;&lt;/view&gt;
+
+&lt;view class=&quot;sendButton&quot; bindtap=&quot;send&quot;&gt;发送&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<p>Js:</p>
+<pre><code>// pages/oneshudong_page/oneshudong.js
+
+Page({
+
+data: {
+
+id:null,
+
+author:null,
+
+title:null,
+
+summary:null,
+
+array:null,
+
+text:null,
+
+\_id:null
+
+},
+
+onLoad(options) {
+
+var that= this
+
+this.setData({
+
+id:options.id
+
+})
+
+//console.log(this.data.id)
+
+// 获取帖子详细内容
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+title:res.data.title,
+
+author:res.data.author,
+
+summary:res.data.summary
+
+})
+
+}
+
+})
+
+// 获取评论
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data.id,
+
+method: 'GET',
+
+data: {
+
+//无
+
+},
+
+success (res) {
+
+console.log(res)
+
+that.setData({
+
+array:res.data
+
+})
+
+}
+
+})
+
+},
+
+// 下拉刷新
+
+onPullDownRefresh() {
+
+var that = this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method:'GET',
+
+data: {
+
+//无
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+title:res.data.title,
+
+author:res.data.author,
+
+summary:res.data.summary
+
+})
+
+}
+
+})
+
+// 获取评论
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data.id,
+
+method: 'GET',
+
+data: {
+
+//无
+
+},
+
+success (res) {
+
+console.log(res)
+
+that.setData({
+
+array:res.data
+
+})
+
+}
+
+})
+
+wx.showToast({
+
+title: '刷新成功',
+
+icon: 'success'
+
+})
+
+wx.stopPullDownRefresh()
+
+},
+
+// 删除帖子
+
+delete(e){
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/'+that.data.id,
+
+url: 'http://192.168.137.1:5000/v1/book/'+that.data.id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code == 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/all/'+that.data.id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+},
+
+// 删除评论
+
+deleteComment(e){
+
+var that = this
+
+console.log(e.target.dataset.index)
+
+this.setData({
+
+\_id : e.target.dataset.index
+
+})
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/'+that.data._id,
+
+method: 'DELETE',
+
+data: {
+
+author:wx.getStorageSync('username')
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 14){
+
+wx.showToast({
+
+title: '删除成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+onPullDownRefresh() //删除评论后自动刷新
+
+},
+
+// 实时获取发送内容
+
+bindText(e){
+
+this.setData({
+
+text:e.detail.value
+
+})
+
+},
+
+// 发送评论
+
+send(e){
+
+var that = this
+
+wx.request({
+
+url: 'http://192.168.137.1:5000/treehole/reply/',
+
+method: 'POST',
+
+data:{
+
+author:wx.getStorageSync('username'),
+
+comment:that.data.text,
+
+image:'none',
+
+this_id:that.data.id
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res){
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 12){
+
+wx.showToast({
+
+title: '发表评论成功',
+
+icon: 'success'
+
+})
+
+}else{
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+}
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="发布界面">发布界面：</h2>
+<figure data-type="image" tabindex="15"><img src="https://lingdajin.github.io/post-images/1699964491581.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/commit/commit.wxml--&gt;
+
+&lt;text class=&quot;text&quot;&gt;标题&lt;/text&gt;
+
+&lt;input placeholder=&quot;输入标题&quot; class='down_line' placeholder-style=&quot;color:#888888; font-size:38rpx;&quot; bindinput=&quot;bindText&quot;&gt;&lt;/input&gt;
+
+&lt;view class=&quot;textarea&quot;&gt;
+
+&lt;textarea placeholder=&quot;发一条帖子吧~&quot; placeholder-style=&quot;color:#888888; font-size:38rpx;&quot; class='textinput' bindinput=&quot;bindTextAreaBlur&quot;&gt;&lt;/textarea&gt;
+
+&lt;/view&gt;
+
+&lt;view id=&quot;btn&quot; class=&quot;click&quot; bindtap='send'&gt;发送&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/post_page/post.js
+
+Page({
+
+data: {
+
+title:null,
+
+text:null,
+
+author:null
+
+},
+
+onLoad(options) {
+
+},
+
+bindText(e){
+
+//console.log(e.detail.value)
+
+this.setData({
+
+title:e.detail.value
+
+})
+
+},
+
+bindTextAreaBlur(e){
+
+//console.log(e.detail.value)
+
+this.setData({
+
+text:e.detail.value
+
+})
+
+},
+
+send(e){
+
+var that= this
+
+wx.request({
+
+// url: 'http://127.0.0.1:5000/v1/book/',
+
+url: 'http://192.168.137.1:5000/v1/book/',
+
+method:'POST',
+
+data:{
+
+title:that.data.title,
+
+summary:that.data.text,
+
+author:wx.getStorageSync('username'),
+
+image:'none',
+
+},
+
+header: {
+
+'Authorization': 'Bearer '+wx.getStorageSync('token')
+
+},
+
+success (res) {
+
+var obj= res.data
+
+console.log(obj)
+
+if(obj.code== 10000){
+
+wx.showToast({
+
+title: '您还没有登陆',
+
+icon: 'error'
+
+})
+
+}else if(obj.code== 10030){
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}else if(obj.code== 10240){
+
+wx.showToast({
+
+title: JSON.stringify(obj.message),
+
+icon: 'error'
+
+})
+
+}
+
+else{
+
+wx.showToast({
+
+title: '发送成功',
+
+icon: 'success'
+
+})
+
+}
+
+}
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="我的界面">我的界面：</h2>
+<figure data-type="image" tabindex="16"><img src="https://lingdajin.github.io/post-images/1699964813167.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--pages/mine/mine.wxml--&gt;
+
+&lt;!-- &lt;view class=&quot;page&quot;&gt;
+
+&lt;image class=&quot;image&quot; src=&quot;/images/myImage.png&quot;&gt;&lt;/image&gt;
+
+&lt;/view&gt; --&gt;
+
+&lt;view class='hello'&gt;
+
+&lt;text&gt;{{welcome}}~&lt;/text&gt;
+
+&lt;/view&gt;
+
+&lt;view style=&quot;margin-top: 100px;&quot;&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;login&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;me&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;用户登录&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;quit&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;close&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;用户登出&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;view class=&quot;info&quot; bindtap=&quot;esp&quot;&gt;
+
+&lt;mp-icon type=&quot;outline&quot; icon=&quot;link&quot; color=&quot;black&quot; size=&quot;{{40}}&quot;&gt;&lt;/mp-icon&gt;
+
+&lt;view style=&quot;font-size: 25px;&quot;&gt;ESP定时器&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>// pages/myinfo_page/myinfo.js
+
+Page({
+
+data: {
+
+welcome:null,
+
+},
+
+onLoad(options) {
+
+var that= this
+
+if(wx.getStorageSync('username')== 'null'){
+
+that.setData({
+
+welcome: '您还没有登陆哦'
+
+})
+
+}else{
+
+that.setData({
+
+welcome: '欢迎你'+wx.getStorageSync('username')
+
+})
+
+}
+
+},
+
+login(e){
+
+if(wx.getStorageSync('username')== 'null'){
+
+wx.reLaunch({
+
+url: '/pages/login_page/login',
+
+})
+
+}else{
+
+console.log(wx.getStorageSync('username'))
+
+wx.showToast({
+
+title: '您已经登录！',
+
+icon: 'error'
+
+})
+
+}
+
+},
+
+quit(e){
+
+wx.setStorageSync('username','null')
+
+wx.removeStorageSync('token')
+
+this.setData({
+
+welcome: '您还没有登陆哦'
+
+})
+
+wx.showToast({
+
+title: '退出成功！',
+
+icon: 'success'
+
+})
+
+},
+
+esp(e){
+
+wx.navigateTo({
+
+url: '/pages/clock/index',
+
+})
+
+}
+
+})
+</code></pre>
+<h2 id="esp定时器界面">ESP定时器界面：</h2>
+<figure data-type="image" tabindex="17"><img src="https://lingdajin.github.io/post-images/1699964878531.jpeg" alt="" loading="lazy"></figure>
+<ul>
+<li><strong>Wxml:</strong></li>
+</ul>
+<pre><code>&lt;!--index.wxml--&gt;
+
+&lt;view style=&quot;margin-top:20px;&quot;&gt;
+
+&lt;view style=&quot;text-align:center;&quot;&gt;
+
+&lt;p style=&quot;font-size:30px;&quot;&gt;ESP远程提醒设置&lt;/p&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt; &lt;p&gt;设备状态：&lt;/p&gt;
+
+&lt;text style=&quot;color: {{statusColor}};&quot;&gt;{{device_status}}&lt;/text&gt;
+
+&lt;/view&gt;
+
+&lt;view style=&quot;margin-top:0px;&quot;&gt; &lt;p&gt;ESP目前提醒时间：{{powerstatus}}&lt;/p&gt; &lt;/view&gt;
+
+&lt;view style=&quot;font-size: 50rpx;margin-top: 50rpx;&quot;&gt;
+
+点击下方以更改提醒时间
+
+&lt;/view&gt;
+
+&lt;picker mode=&quot;time&quot; value=&quot;{{time}}&quot; start=&quot;00:01&quot; end=&quot;23:59&quot; bindchange=&quot;bindTimeChange&quot;&gt;
+
+&lt;view class=&quot;flex&quot;&gt;
+
+&lt;view class=&quot;choose&quot;&gt;{{time1}}&lt;/view&gt;
+
+&lt;view class=&quot;maohao&quot;&gt;:&lt;/view&gt;
+
+&lt;view class=&quot;choose&quot;&gt;{{time2}}&lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/picker&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt;
+
+&lt;view style=&quot;margin-top:30px;&quot;&gt; &lt;button bindtap=&quot;openclick&quot; &gt;发送&lt;/button&gt; &lt;/view&gt;
+
+&lt;/view&gt;
+
+&lt;/view&gt;
+
+\&lt;/view&gt;
+</code></pre>
+<ul>
+<li><strong>Js:</strong></li>
+</ul>
+<pre><code>const app = getApp()
+
+Page({
+
+data: {
+
+uid: 'ea565388aea14b9088ebd3801e5488c0',
+
+topic: &quot;timer&quot;,
+
+device_status: &quot;离线&quot;, //默认离线
+
+powerstatus:&quot;已关闭&quot;, //默认关闭
+
+time:&quot;无&quot;,
+
+time1:&quot;00&quot;,
+
+time2:&quot;00&quot;,
+
+statusColor:&quot;red&quot;
+
+},
+
+onLoad: function () {
+
+var that = this
+
+//请求设备状态
+
+//设备断开不会立即显示离线，由于网络情况的复杂性，离线1分钟左右才判断真离线
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/status/', //状态api接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+if(res.data.status === &quot;online&quot;){
+
+that.setData({
+
+device_status:&quot;在线&quot;,
+
+statusColor: &quot;green&quot;
+
+})
+
+}else{
+
+that.setData({
+
+device_status:&quot;离线&quot;,
+
+statusColor: &quot;red&quot;
+
+})
+
+}
+
+console.log(that.data.device_status)
+
+}
+
+})
+
+//请求询问设备开关/状态
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+powerstatus:res.data.msg
+
+})
+
+console.log(that.data.powerstatus)
+
+}
+
+})
+
+//设置定时器，每五秒请求一下设备状态
+
+setInterval(function () {
+
+console.log(&quot;定时请求设备状态,默认五秒&quot;);
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/status/', //get 设备状态接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+if(res.data.status === &quot;online&quot;){
+
+that.setData({
+
+device_status:&quot;在线&quot;,
+
+statusColor: &quot;green&quot;
+
+})
+
+}else{
+
+that.setData({
+
+device_status:&quot;离线&quot;,
+
+statusColor: &quot;red&quot;
+
+})
+
+}
+
+console.log(that.data.device_status)
+
+}
+
+})
+
+//请求询问设备开关/状态
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //get接口，详见巴法云接入文档
+
+data: {
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+that.setData({
+
+powerstatus:res.data.msg
+
+})
+
+console.log(that.data.powerstatus)
+
+}
+
+})
+
+}, 5000)
+
+},
+
+openclick: function() {
+
+var that = this
+
+that.setData({
+
+powerstatus:&quot;已打开&quot;
+
+})
+
+//控制接口
+
+wx.request({
+
+url: 'https://api.bemfa.com/api/device/v1/data/1/', //api接口，详见接入文档
+
+method:&quot;POST&quot;,
+
+data: { //请求字段，详见巴法云接入文档，http接口
+
+uid: that.data.uid,
+
+topic: that.data.topic,
+
+msg:that.data.time //发送消息为on的消息
+
+},
+
+header: {
+
+'content-type': &quot;application/x-www-form-urlencoded&quot;
+
+},
+
+success (res) {
+
+console.log(res.data)
+
+wx.showToast({
+
+title:'发送成功',
+
+icon:'success',
+
+duration:1000
+
+})
+
+}
+
+})
+
+},
+
+bindTimeChange: function(e) {
+
+console.log('picker发送选择改变，携带值为', e.detail.value)
+
+this.setData({
+
+time: e.detail.value,
+
+time1:e.detail.value.slice(0, 2),
+
+time2:e.detail.value.slice(3, 5),
+
+})
+
+},
+
+})
+</code></pre>
+<ul>
+<li>
+<p><strong>硬件(ESP8266-NodeMCU 1.0)</strong></p>
+<figure data-type="image" tabindex="18"><img src="https://lingdajin.github.io/post-images/1699964992446.jpeg" alt="" loading="lazy"></figure>
+</li>
+</ul>
+<pre><code>#include &lt;Arduino.h&gt;
+
+#include &lt;U8g2lib.h&gt;
+
+#include &lt;Wire.h&gt;
+
+#include &lt;NTPClient.h&gt;
+
+#include &lt;ESP8266WiFi.h&gt;
+
+#include &lt;WiFiUdp.h&gt;
+
+WiFiUDP ntpUDP;
+
+一些包含的头文件
+
+//巴法云服务器地址默认即可
+
+#define TCP_SERVER_ADDR &quot;bemfa.com&quot;
+
+//服务器端口，tcp创客云端口8344
+
+#define TCP_SERVER_PORT &quot;8344&quot;
+
+#define DEFAULT_STASSID &quot;LAO_TIAN&quot; //WIFI名称，区分大小写，不要写错
+
+#define DEFAULT_STAPSW &quot;12345678&quot; //WIFI密码
+
+String UID = &quot;ea565388aea14b9088ebd3801e5488c0&quot;; //用户私钥，可在控制台获取,修改为自己的UID
+
+String TOPIC = &quot;timer&quot;; //主题名字，可在控制台新建
+
+连接巴法云
+
+//最大字节数
+
+#define MAX_PACKETSIZE 512
+
+//设置心跳值30s
+
+#define KEEPALIVEATIME 60*1000
+
+//tcp客户端相关初始化，默认即可
+
+WiFiClient TCPclient;
+
+String TcpClient_Buff = &quot;&quot;;
+
+unsigned int TcpClient_BuffIndex = 0;
+
+unsigned long TcpClient_preTick = 0;
+
+unsigned long preHeartTick = 0;//心跳
+
+unsigned long preTCPStartTick = 0;//连接
+
+bool preTCPConnected = false;
+
+// 设置屏幕
+
+U8G2_SSD1306_128X64_NONAME_1_SW_I2C u8g2(U8G2_R0, 14 , 5, U8X8_PIN_NONE); // All Boards without Reset of the Display
+
+NTPClient timeClient(ntpUDP, &quot;cn.ntp.org.cn&quot;, 8 * 60 * 60, 60000);
+
+String setTime=&quot;10:00&quot;;
+
+int button = 0;
+
+int bee = 13;
+
+int value = 1;
+
+int judge;
+
+//相关函数初始化
+
+//连接WIFI
+
+void doWiFiTick();
+
+void startSTA();
+
+//TCP初始化连接
+
+void doTCPClientTick();
+
+void startTCPClient();
+
+void sendtoTCPServer(String p);
+
+void set_time(String get);
+
+void setup(void) {
+
+pinMode(bee, OUTPUT);
+
+pinMode(button, INPUT_PULLUP);
+
+Serial.begin(115200);
+
+Serial.println(&quot;Beginning...&quot;);
+
+timeClient.begin();
+
+Serial.println ( &quot;网络时钟初始化完成&quot; );
+
+u8g2.begin();
+
+}
+
+void loop(void) {
+
+// wifi
+
+doWiFiTick();
+
+// 网络获取时间
+
+timeClient.update();
+
+String nowtime = timeClient.getFormattedTime();
+
+// Serial.println(nowtime);
+
+String hours = nowtime.substring(0, 2);
+
+String minutes = nowtime.substring(3, 5);
+
+String seconds = nowtime.substring(6, 8);
+
+通过网络获取时间
+
+const char *hour = hours.c_str();
+
+const char *minute = minutes.c_str();
+
+const char *second = seconds.c_str();
+
+// 在屏幕显示时间
+
+u8g2.firstPage();
+
+do {
+
+u8g2.setFont(u8g2_font_unifont_t_chinese2);
+
+u8g2.drawStr(30,15,hour);
+
+u8g2.drawStr(50,15,&quot;:&quot;);
+
+u8g2.drawStr(60,15,minute);
+
+u8g2.drawStr(80,15,&quot;:&quot;);
+
+u8g2.drawStr(90,15,second);
+
+u8g2.drawStr(10,30,setTime.substring(0,2).c_str());
+
+u8g2.drawStr(30,30,&quot;:&quot;);
+
+u8g2.drawStr(40,30,setTime.substring(3,5).c_str());
+
+} while ( u8g2.nextPage() );
+
+OLED显示屏显示时间、已设置的闹铃定时等
+
+// 控制到达设置时间时启动蜂鸣
+
+if(value == 1){ //若没有按过按钮
+
+if(strcmp(hours.c_str(),setTime.substring(0,2).c_str()) == strcmp(minutes.c_str(),setTime.substring(3,5).c_str())){
+
+digitalWrite(bee,HIGH);
+
+Serial.println(&quot;Bee On&quot;);
+
+value=digitalRead(button);
+
+if(value == 0){
+
+digitalWrite(bee,LOW);
+
+Serial.println(&quot;Bee Stop&quot;);
+
+judge = minutes.toInt();
+
+}
+
+}
+
+}
+
+if(value == 0){ //按下按钮后判定一分钟内不再响铃
+
+if(minutes.toInt() == judge + 1){
+
+value = 1;
+
+}
+
+}
+
+// 连接tcp
+
+doTCPClientTick();
+
+}
+
+/*
+
+*发送数据到TCP服务器
+
+*/
+
+void sendtoTCPServer(String p){
+
+if (!TCPclient.connected())
+
+{
+
+Serial.println(&quot;Client is not readly&quot;);
+
+return;
+
+}
+
+TCPclient.print(p);
+
+Serial.println(&quot;[Send to TCPServer]:String&quot;);
+
+Serial.println(p);
+
+preHeartTick = millis();//心跳计时开始，需要每隔60秒发送一次数据
+
+}
+
+/*
+
+*初始化和服务器建立连接
+
+*/
+
+void startTCPClient(){
+
+if(TCPclient.connect(TCP_SERVER_ADDR, atoi(TCP_SERVER_PORT))){
+
+Serial.print(&quot;nConnected to server:&quot;);
+
+Serial.printf(&quot;%s:%d\r\n&quot;,TCP_SERVER_ADDR,atoi(TCP_SERVER_PORT));
+
+String tcpTemp=&quot;&quot;; //初始化字符串
+
+tcpTemp = &quot;cmd=1&amp;uid=&quot;+UID+&quot;&amp;topic=&quot;+TOPIC+&quot;\r\n&quot;; //构建订阅指令
+
+sendtoTCPServer(tcpTemp); //发送订阅指令
+
+tcpTemp=&quot;&quot;;//清空
+
+preTCPConnected = true;
+
+TCPclient.setNoDelay(true);
+
+}
+
+else{
+
+Serial.print(&quot;Failed connected to server:&quot;);
+
+Serial.println(TCP_SERVER_ADDR);
+
+TCPclient.stop();
+
+preTCPConnected = false;
+
+}
+
+preTCPStartTick = millis();
+
+}
+
+/*
+
+*检查数据，发送心跳
+
+*/
+
+void doTCPClientTick(){
+
+//检查是否断开，断开后重连
+
+if(WiFi.status() != WL_CONNECTED) return;
+
+if (!TCPclient.connected()) {//断开重连
+
+if(preTCPConnected == true){
+
+preTCPConnected = false;
+
+preTCPStartTick = millis();
+
+Serial.println();
+
+Serial.println(&quot;TCP Client disconnected.&quot;);
+
+TCPclient.stop();
+
+}
+
+else if(millis() - preTCPStartTick &gt; 1*1000)//重新连接
+
+startTCPClient();
+
+}
+
+else
+
+{
+
+if (TCPclient.available()) {//收数据
+
+char c =TCPclient.read();
+
+TcpClient_Buff +=c;
+
+TcpClient_BuffIndex++;
+
+TcpClient_preTick = millis();
+
+if(TcpClient_BuffIndex&gt;=MAX_PACKETSIZE - 1){
+
+TcpClient_BuffIndex = MAX_PACKETSIZE-2;
+
+TcpClient_preTick = TcpClient_preTick - 200;
+
+}
+
+}
+
+if(millis() - preHeartTick &gt;= KEEPALIVEATIME){//保持心跳
+
+preHeartTick = millis();
+
+Serial.println(&quot;--Keep alive:&quot;);
+
+sendtoTCPServer(&quot;cmd=0&amp;msg=keeprn&quot;);
+
+}
+
+}
+
+if((TcpClient_Buff.length() &gt;= 1) &amp;&amp; (millis() - TcpClient_preTick&gt;=200))
+
+{//data ready
+
+TCPclient.flush();
+
+Serial.print(&quot;Rev string: &quot;);
+
+TcpClient_Buff.trim(); //去掉首位空格
+
+Serial.println(TcpClient_Buff); //打印接收到的消息
+
+String getTopic = &quot;&quot;;
+
+String getMsg = &quot;&quot;;
+
+if(TcpClient_Buff.length() &gt; 15){
+
+//注意TcpClient_Buff只是个字符串，在上面开头做了初始化StringTcpClient_Buff = &quot;&quot;;
+
+//此时会收到推送的指令，指令大概为 cmd=2&amp;uid=xxx&amp;topic=light002&amp;msg=off
+
+int topicIndex = TcpClient_Buff.indexOf(&quot;&amp;topic=&quot;)+7;
+
+//c语言字符串查找，查找&amp;topic=位置，并移动7位，不懂的可百度c语言字符串查找
+
+int msgIndex = TcpClient_Buff.indexOf(&quot;&amp;msg=&quot;);
+
+//c语言字符串查找，查找&amp;msg=位置
+
+getTopic = TcpClient_Buff.substring(topicIndex,msgIndex);
+
+//c语言字符串截取，截取到topic,不懂的可百度c语言字符串截取
+
+getMsg = TcpClient_Buff.substring(msgIndex+5);
+
+//c语言字符串截取，截取到消息
+
+Serial.print(&quot;topic:------&quot;);
+
+Serial.println(getTopic);
+
+//打印截取到的主题值
+
+Serial.print(&quot;msg:--------&quot;);
+
+Serial.println(getMsg);
+
+//打印截取到的消息值
+
+// set_time(getMsg);
+
+//将获取到的时间转化为时、分，并存储起来
+
+setTime = getMsg;
+
+}
+
+TcpClient_Buff=&quot;&quot;;
+
+TcpClient_BuffIndex = 0;
+
+}
+
+}
+
+void startSTA(){
+
+WiFi.disconnect();
+
+WiFi.mode(WIFI_STA);
+
+WiFi.begin(DEFAULT_STASSID, DEFAULT_STAPSW);
+
+}
+
+/\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*
+
+WIFI
+
+\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*/
+
+/*
+
+WiFiTick
+
+检查是否需要初始化WiFi
+
+检查WiFi是否连接上，若连接成功启动TCP Client
+
+控制指示灯
+
+*/
+
+void doWiFiTick(){
+
+static bool startSTAFlag = false;
+
+static bool taskStarted = false;
+
+static uint32_t lastWiFiCheckTick = 0;
+
+if (!startSTAFlag) {
+
+startSTAFlag = true;
+
+startSTA();
+
+Serial.printf(&quot;Heap size:%d\r\n&quot;, ESP.getFreeHeap());
+
+}
+
+//未连接1s重连
+
+if ( WiFi.status() != WL_CONNECTED ) {
+
+if (millis() - lastWiFiCheckTick &gt; 1000) {
+
+lastWiFiCheckTick = millis();
+
+}
+
+}
+
+//连接成功建立
+
+else {
+
+if (taskStarted == false) {
+
+taskStarted = true;
+
+Serial.print(&quot;\r\nGet IP Address: &quot;);
+
+Serial.println(WiFi.localIP());
+
+startTCPClient();
+
+}
+
+}
+
+}
+
+// 将获取到的时间转化为时、分，并存储起来
+
+void set_time(String get){
+
+ESP.wdtFeed();
+
+传说中的“喂狗”函数，防止ESP8266复位
+
+}
+</code></pre>
+<p><strong>团队介绍：</strong></p>
+<table>
+<thead>
+<tr>
+<th><strong>成员</strong></th>
+<th><strong>分工</strong></th>
+<th><strong>贡献率</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>唐奥</strong></td>
+<td>创意策划、框架搭建 负责部分硬件搭建</td>
+<td>55%</td>
+</tr>
+<tr>
+<td><strong>田晁旭</strong></td>
+<td>功能完善与调试 负责部分硬件搭建</td>
+<td>45%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>团队故事：</strong></p>
+<p>这个想法诞生于去年年末疫情解控放开，身边大部分人抗体检测呈阳性，并且还有许多学长学姐处于考研复习的关键期，转阳后心理负担重，产生的巨大的心理压力无处发泄；同时很多人属于第一次“阳”，对于如何复健毫无头绪。综合以上需求，我们构思了一个集提供新冠医疗建议、论坛形式交流倾诉、健康起居打卡检测于一体的小程序“阳康宝典”。</p>
+<p>我们最初的重点在“提供新冠医疗建议”上，但随着国家科学有效的开放管控，全国疫情情况已经趋于平稳，维持在一个低峰状态，遂经过成员讨论，将小程序的核心功能定位在“用户论坛”和“健康起居打卡”功能上。</p>
+<p>“用户论坛”的灵感来源于BBS具有的发帖、回帖等相关功能，用户在小程序注册后即可拥有发帖、回帖等权限，不过这只是一个雏形，多样化方面（比如有色字、加粗、下划线等基本功能，评论图片，论坛背景等美化工作仍需加强完善。</p>
+<p>“健康起居打卡”以饮水习惯检测为例，通过ESP8266 Module WiFi模块实现器件（蜂鸣器、OLED显示屏等）与小程序的沟通互动，ESP8266模块连接互联网后自动同步当前时间，并在OLED显示屏上实时显示，用户端通过巴法云发送定时指令，ESP8266接受到信息后从中提取时间并启动定时提醒，提醒到点喝水。</p>
+<p>刚开始实现这个功能的时候，采用的是统一发放的ESP8266-S01，发现并不能很好地实现预想功能，ESP8266-S01不能带动蜂鸣器报警，也不能驱动OLED显示时间，基于此我们迅速购买了ESP8266-NodeMCU，顺利解决了问题，继续推进整体的构建。</p>
+<p>此后无数个日日夜夜里，我们在努力攻克不断产生的新问题，终于让整个构想小有雏形。</p>
+<p>不知道经过了多少天，我们设想的核心功能——定时提醒打卡功能终于完成了，尽管功能有些简陋，但聊胜于无哈哈哈。</p>
+<p>导论是一个绝佳的机会，让我们去尝试，去努力，去探求解决方法。我们看见了自身存在的不足，并努力补齐短板。在实现的过程中，不仅学到了有用的拓展知识，锻炼了自己debug的能力，而且培养了我们团队协作的精神，培养了我们坚持到底锲而不舍的精神。</p>
+<p><strong>B站视频</strong></p>
+<p><a href="https://www.bilibili.com/video/BV1Jc411u71e/">https://www.bilibili.com/video/BV1Jc411u71e/</a></p>
+<p><strong>GitHub代码</strong></p>
+<p><a href="https://gitee.com/ling_da_jin/Yangkang_book">https://gitee.com/ling_da_jin/Yangkang_book</a></p>
+<p><strong>参考资料：</strong></p>
+<p><a href="https://mp.weixin.qq.com/s/CVf2e-k4pEdn2QlYN0o_ww">大数据显示：疫情三年，青少年焦虑、抑郁上升趋势惊人，我们能做什么？</a></p>
+<p><a href="http://www.nhc.gov.cn/xcs/fkdt/202212/560d0401fe4c4f4180d2d61c7c44abf3.shtml">新冠病毒感染者居家指引（第一版）</a></p>
+<p><a href="https://blog.csdn.net/qq_44366571/article/details/107310134">【物联网】基础篇 ESP8266-NodeMCU学习一</a></p>
+<p><a href="https://blog.csdn.net/bemfa/article/details/107019002">【开源】微信小程序控制ESP8266</a></p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://lingdajin.github.io/post/pcb-qu-dong-ban/">
+                  <h3 class="post-title">
+                    PCB驱动板
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+              
+                <div id="gitalk-container" data-aos="fade-in"></div>
+              
+
+              
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+  
+    <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+    <script>
+
+      var gitalk = new Gitalk({
+        clientID: '1f879b763da8aed37515',
+        clientSecret: '6c14b72825c03cb80fe1bb6490df46c82f21edc2',
+        repo: 'blog_reply',
+        owner: 'lingdajin',
+        admin: ['lingdajin'],
+        id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+        distractionFreeMode: false  // Facebook-like distraction free mode
+      })
+
+      gitalk.render('gitalk-container')
+
+    </script>
+  
+
+  
+
+
+
+
+  </body>
+</html>
